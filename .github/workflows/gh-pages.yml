@@ -104,4 +104,4 @@ jobs:
         with:
           personal_token: ${{ secrets.PERSONAL_TOKEN }}
           external_repository: koobai/sport
-          publish_dir: ./public
+          publish_dir: ./dist
