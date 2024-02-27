@@ -97,10 +97,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Build
-        run: PATH_PREFIX=/${{ github.event.repository.name }} pnpm build
+        run: PATH_PREFIX=/ pnpm build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          # Upload dist repository
-          path: './dist'
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          external_repository: koobai/sport
+          publish_dir: ./public
