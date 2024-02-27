@@ -193,7 +193,7 @@ const Index = () => {
 
   return (
     <Layout>
-      <div className="fl w-30-l">
+      {/* <div className="fl w-30-l">
         <h1 className="f1 fw9 i">
           <a href="/">{siteTitle}</a>
         </h1>
@@ -207,8 +207,12 @@ const Index = () => {
         ) : (
           <YearsStat year={year} onClick={changeYear} onClickTypeInYear={changeTypeInYear}/>
         )}
+      </div>*/}
+      <div className='page-background'>
+      <div className="pagetitle">
+      自己的体重导致双脚变得沉重越来越扛不住它，体检数据也一年比一年难看，是时候该动起来了。锻炼开始第2年，地图展示的是2024年轨迹热图。
       </div>
-      <div className="fl w-100 w-70-l">
+      <div className="page-map">
         <RunMap
           title={title}
           viewState={viewState}
@@ -217,6 +221,7 @@ const Index = () => {
           changeYear={changeYear}
           thisYear={year}
         />
+        </div>
         {year === 'Total' ? (
           <SVGStat />
         ) : (
@@ -228,7 +233,7 @@ const Index = () => {
             setRunIndex={setRunIndex}
           />
         )}
-      </div>
+        </div>
       {/* Enable Audiences in Vercel Analytics: https://vercel.com/docs/concepts/analytics/audiences/quickstart */}
       <Analytics />
     </Layout>

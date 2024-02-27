@@ -11,7 +11,7 @@ const Layout = ({ children }: React.PropsWithChildren) => {
   return (
     <>
       <Helmet bodyAttributes={{ class: styles.body }}>
-        <html lang="en" />
+        <html lang="zh" />
         <title>{siteTitle}</title>
         <meta name="description" content={description} />
         <meta name="keywords" content={keywords} />
@@ -21,7 +21,7 @@ const Layout = ({ children }: React.PropsWithChildren) => {
         />
       </Helmet>
       <Header />
-      <div className="pa3 pa5-l mb5 cf">{children}</div>
+      <div className="">{children}</div>
     </>
   );
 };

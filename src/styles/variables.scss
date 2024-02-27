@@ -1,12 +1,11 @@
-$global-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-  Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+$global-font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Helvetica,"PingFangSC-Regular","Hiragino Sans GB","Lantinghei SC","Microsoft Yahei","Source Han Sans CN","WenQuanYi Micro Hei",SimSun,sans-serif;
 
 $breakpoint-mobile: 960px;
 $breakpoint-stack: 530px;
 
 $nike: rgb(224, 237, 94);
-$light: rgb(204, 204, 204);
-$dark: rgb(26, 26, 26);
+$light: #999;
+$dark: #1A1718;
 $green: rgb(0,237,94);
 
 $map-box-line-color:rgb(71, 184, 224)

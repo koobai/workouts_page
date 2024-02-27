@@ -17,7 +17,8 @@
 
   thead {
     color: $light;
-    text-align: right;
+    font-size: 0.85rem;
+    text-align: left;
 
     th {
       padding: 0.5rem;
@@ -30,7 +31,7 @@
   td {
     padding: 0.5rem;
     border: 0;
-    text-align: right;
+    text-align: left;
 
     &:first-child {
       text-align: left;
@@ -44,7 +45,7 @@
 }
 
 .selected {
-  color: red !important;
+  color: #FC9151 !important;
 }
 
 .tableContainer {
@@ -54,4 +55,5 @@
 
 .runDate {
   color: $light;
+  font-size: 0.85rem;
 }

@@ -13,6 +13,8 @@ img::-moz-selection {
 
 body {
   font-family: $global-font-family;
+  max-width: 700px;
+  margin: auto;
   font-weight: normal;
   text-rendering: optimizeLegibility;
   -moz-osx-font-smoothing: grayscale;
@@ -125,4 +127,104 @@ h5 .header-link {
 
 .markdown-content .gatsby-resp-image-wrapper {
   margin-top: 1rem;
+}
+
+//自定义css
+.header {
+  display: flex;
+  align-items: center;
+  padding: 40px 0 60px 0;
+}
+.header-menu{
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  z-index: 2;
+  flex-wrap: wrap;
+ }
+ .header-menu a {
+  color: #dfdfdf;
+  font-size: 1rem;
+ }
+ .header-menu a:hover {
+  text-decoration: underline;
+ }
+ .header-right {
+  display: flex;
+  grid-gap: 20px; /* 中间空10px间距 */
+  align-items: center;
+  margin-left: auto;
+  z-index: 2;
+ }
+.header-right svg{
+  fill: #827478;
+  width: 20px;
+}
+.header-right svg:hover{
+  fill: #666;
+}
+.about-koobai img{
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transition: opacity .3s ease-in-out;
+}
+.about-koobai img:hover{
+  opacity: 0.6;
+}
+ // 页面宽度小于900样式
+@media (max-width:900px){
+  body {
+    padding: 25px;
+  }
+  .header {
+    padding: 25px 0 25px 0;
+    justify-content: center;
+  }
+  .header-right{
+    display: none;
+  }
+  .page-map {
+    position: static !important; /* 相对于其正常位置定位 */
+    width: 100% !important;
+    margin-left: auto !important;
+  }
+  .page-map:after {
+    position: static !important;
+  }
+  .pagetitle {
+    display: none;
+  }
+  .header-menu{
+    gap: 20px;
+   }
+}
+.page-map{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  z-index: -1;
+}
+.page-map:after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 35%, #1A1718 100%);
+  pointer-events: none;
+}
+.pagetitle {
+  font-size: 1rem;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  max-width: 620px;
+  margin: auto;
+  padding-bottom: 20px;
+  text-align: center;
+  color: #dfdfdf;
+  margin-top: 400px;
 }
