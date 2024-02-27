@@ -99,6 +99,14 @@ jobs:
       - name: Build
         run: PATH_PREFIX=/${{ github.event.repository.name }} pnpm build
 
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          # Upload dist repository
+          path: './dist'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
