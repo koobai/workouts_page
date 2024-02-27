@@ -3,7 +3,7 @@ import useSiteMetadata from '@/hooks/useSiteMetadata';
 
 const Header = () => {
   const { logo, siteUrl, navLinks } = useSiteMetadata();
-
+  const currentPageUrl = window.location.pathname;
   return (
     <>
  <div className="header">
@@ -12,6 +12,7 @@ const Header = () => {
             <a
               key={i}
               href={n.url}
+              className={currentPageUrl === n.url ? 'menu-gaoliang' : ''}
             >
               {n.name}
             </a>
