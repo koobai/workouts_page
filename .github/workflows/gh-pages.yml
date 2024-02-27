@@ -104,6 +104,3 @@ jobs:
         with:
           # Upload dist repository
           path: './dist'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
