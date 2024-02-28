@@ -210,7 +210,7 @@ const Index = () => {
       </div>*/}
       <div className='page-background'>
       <div className="pagetitle">
-      自己的体重导致双脚变得沉重越来越扛不住它，体检数据也一年比一年难看，是时候该动起来了。锻炼开始第2年，地图展示的是2024年轨迹热图。
+      自己越来越肥胖的身体，导致双脚都扛不住了，没走几下就累；体检数据也一年比一年难看，是时候该动起来了。锻炼开始第 2 年，地图展示的是今年轨迹热图。
       </div>
       <div className="page-map">
         <RunMap

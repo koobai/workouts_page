@@ -13,6 +13,7 @@ img::-moz-selection {
 
 body {
   font-family: $global-font-family;
+  background: #1A1718;
   max-width: 700px;
   margin: auto;
   font-weight: normal;
@@ -143,7 +144,7 @@ h5 .header-link {
   flex-wrap: wrap;
  }
  .header-menu a {
-  color: #dfdfdf;
+  color: #fff;
   font-size: 1rem;
  }
  .header-menu a:hover {
@@ -230,4 +231,14 @@ h5 .header-link {
   text-align: center;
   color: #dfdfdf;
   margin-top: 400px;
+}
+
+// 夜间模式页面样式
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #1A1718;
+  }
+  .header-menu a {
+    color: #dfdfdf;
+   }
 }

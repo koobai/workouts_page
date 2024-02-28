@@ -11,8 +11,8 @@ interface ISiteMetadataResult {
 }
 
 const data: ISiteMetadataResult = {
-  siteTitle: '运动 - 空白Koobai',
-  siteUrl: 'https://koobai.com',
+  siteTitle: '锻炼 - 空白Koobai',
+  siteUrl: 'https://sport.koobai.com',
   logo: 'https://img.koobai.com/koobai.webp',
   description: 'Personal site and blog',
   keywords: 'workouts, running, cycling, riding, roadtrip, hiking, swimming',
@@ -26,7 +26,7 @@ const data: ISiteMetadataResult = {
       url: 'https://koobai.com/posts/',
     },
     {
-      name: '运动',
+      name: '锻炼',
       url: '/',
     },
     {
