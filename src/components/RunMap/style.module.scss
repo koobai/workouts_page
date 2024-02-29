@@ -20,7 +20,7 @@
   display: inline-block;
   position: relative;
   cursor: pointer;
-  padding: 1.3rem 0.4rem;
+  padding: 30px 10px;
   margin-top: 0.1rem;
   font-size: 1rem;
   text-align: center;
@@ -68,4 +68,12 @@
   background-repeat: no-repeat;
   background-position: center center;
   opacity: 1;
+}
+
+
+ // 页面宽度小于900样式
+ @media (max-width:900px){
+   .button,.lights{
+    display: none;
+  }
 }

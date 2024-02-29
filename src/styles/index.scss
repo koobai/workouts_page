@@ -183,21 +183,18 @@ h5 .header-link {
   }
   .header {
     padding: 25px 0 25px 0;
-    justify-content: center;
   }
-  .header-right{
+  .header-right {
+    grid-gap: 0; 
+   }
+  .header-right svg{
     display: none;
-  }
-  .page-map {
-    position: static !important; /* 相对于其正常位置定位 */
-    width: 100% !important;
-    margin-left: auto !important;
-  }
-  .page-map:after {
-    position: static !important;
   }
   .pagetitle {
     display: none;
+  }
+  .page-nrong{
+    margin-top: 350px !important;
   }
   .header-menu{
     gap: 20px;
@@ -232,7 +229,9 @@ h5 .header-link {
   color: #dfdfdf;
   margin-top: 400px;
 }
-
+.page-nrong{
+  margin-top: 20px;
+}
 //文本选择高亮颜色
 ::selection {
   background: #634939;

@@ -222,6 +222,7 @@ const Index = () => {
           thisYear={year}
         />
         </div>
+        <div className='page-nrong'>
         {year === 'Total' ? (
           <SVGStat />
         ) : (
@@ -233,6 +234,7 @@ const Index = () => {
             setRunIndex={setRunIndex}
           />
         )}
+        </div>
         </div>
       {/* Enable Audiences in Vercel Analytics: https://vercel.com/docs/concepts/analytics/audiences/quickstart */}
       <Analytics />

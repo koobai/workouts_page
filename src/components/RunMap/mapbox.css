@@ -295,7 +295,7 @@
 a.mapboxgl-ctrl-logo {
   width: 88px;
   height: 23px;
-  margin: 0 0 -4px -4px;
+  opacity: .6;
   display: block;
   background-repeat: no-repeat;
   cursor: pointer;
@@ -317,9 +317,7 @@ a.mapboxgl-ctrl-logo.mapboxgl-compact {
   }
 }
 .mapboxgl-ctrl.mapboxgl-ctrl-attrib {
-  padding: 0 5px;
-  background-color: hsla(0, 0%, 100%, 0.5);
-  margin: 0;
+  display: none;
 }
 @media screen {
   .mapboxgl-ctrl-attrib.mapboxgl-compact {
@@ -663,4 +661,14 @@ a.mapboxgl-ctrl-logo.mapboxgl-compact {
 .mapboxgl-canvas-container.mapboxgl-touch-pan-blocker-override.mapboxgl-scrollable-page
   .mapboxgl-canvas {
   touch-action: pan-x pan-y;
+}
+
+
+@media (max-width:900px){
+  .mapboxgl-ctrl-group{
+   display: none;
+ }
+ a.mapboxgl-ctrl-logo {
+  opacity: .2;
+ }
 }
