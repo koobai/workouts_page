@@ -160,6 +160,8 @@ h5 .header-link {
 .header-right svg{
   fill: #827478;
   width: 20px;
+  height: 20px;
+  display: block;
 }
 .header-right svg:hover{
   fill: #666;
@@ -169,6 +171,7 @@ h5 .header-link {
   height: 20px;
   border-radius: 50%;
   transition: opacity .3s ease-in-out;
+  display: block;
 }
 .about-koobai img:hover{
   opacity: 0.6;
@@ -179,7 +182,7 @@ h5 .header-link {
  // 页面宽度小于900样式
 @media (max-width:900px){
   body {
-    padding: 25px;
+    padding: 0 20px 20px 20px;
   }
   .header {
     padding: 25px 0 25px 0;
