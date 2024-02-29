@@ -190,14 +190,20 @@ h5 .header-link {
   .header-right svg{
     display: none;
   }
+  .about-koobai img{
+    width: 32px;
+    height: 32px;
+  }
   .pagetitle {
     display: none;
   }
   .page-nrong{
     margin-top: 350px !important;
+    position: relative;
+    z-index: 2;
   }
   .header-menu{
-    gap: 20px;
+    display: none;
    }
 }
 .page-map{
@@ -206,7 +212,7 @@ h5 .header-link {
   left: 0;
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  z-index: -1;
+
 }
 .page-map:after {
   content: '';
@@ -228,6 +234,8 @@ h5 .header-link {
   text-align: center;
   color: #dfdfdf;
   margin-top: 400px;
+  position: relative;
+  z-index: 2;
 }
 .page-nrong{
   margin-top: 20px;
