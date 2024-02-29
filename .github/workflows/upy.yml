@@ -1,0 +1,111 @@
+name: Publish GitHub Pages
+
+# Controls when the action will run.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    inputs:
+      save_data_in_github_cache:
+        required: true
+        type: boolean
+        default: false
+      data_cache_prefix:
+        required: true
+        type: string
+        default: track_data
+  workflow_call:
+    inputs:
+      save_data_in_github_cache:
+        required: true
+        type: boolean
+        default: false
+      data_cache_prefix:
+        required: true
+        type: string
+        default: track_data
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build_and_deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          # if your default branches is not master, please change it here
+          ref: master
+
+      - name: Cache Data Files
+        if: inputs.save_data_in_github_cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            activities
+            assets
+            GPX_OUT
+            TCX_OUT
+            FIT_OUT
+            Workouts
+            run_page/data.db
+            src/static/activities.json
+            imported.json
+          key: ${{ inputs.data_cache_prefix }}-${{ github.sha }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ inputs.data_cache_prefix }}-${{ github.sha }}-
+            ${{ inputs.data_cache_prefix }}-
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build
+        run: PATH_PREFIX=/ pnpm build 
+
+      - name: Deploy
+        uses: her-cat/upyun-deployer@v1.0.3
+        with:
+          bucket: ${{ secrets.UPYUN_BUCKET }}
+          operator: ${{ secrets.UPYUN_OPERATOR_NAME }}
+          password: ${{ secrets.UPYUN_OPERATOR_PWD }}
+          dir: 'dist'
