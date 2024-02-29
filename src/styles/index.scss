@@ -233,6 +233,11 @@ h5 .header-link {
   margin-top: 400px;
 }
 
+//文本选择高亮颜色
+::selection {
+  background: #634939;
+}
+
 // 夜间模式页面样式
 @media (prefers-color-scheme: dark) {
   body {
