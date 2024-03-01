@@ -12,7 +12,7 @@ img::-moz-selection {
 }
 
 body {
-  font-family: 'JetBrainsMono',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Helvetica,"PingFangSC-Regular","Hiragino Sans GB","Lantinghei SC","Microsoft Yahei","Source Han Sans CN","WenQuanYi Micro Hei",SimSun,sans-serif;
+  font-family: $global-font-family;
   background: #1A1718;
   max-width: 700px;
   margin: auto;
