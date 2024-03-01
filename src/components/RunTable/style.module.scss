@@ -36,6 +36,8 @@
     &:first-child {
       text-align: left;
       min-width: 100px;
+      max-width: 120px;
+      line-height: 1.4;
     }
   }
 
@@ -58,3 +60,10 @@
   font-size: 0.85rem;
   text-align: right !important;
 }
+
+ // 页面宽度小于900样式
+ @media (max-width:700px){
+  .runTable {
+    width: 150%;
+  }
+ }
