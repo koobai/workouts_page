@@ -3,9 +3,6 @@ name: Deploy to UpYun
 # Controls when the action will run.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
     inputs:
       save_data_in_github_cache:
         required: true
