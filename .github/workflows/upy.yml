@@ -44,7 +44,7 @@ concurrency:
 jobs:
   # This workflow contains a single job called "build"
   build_and_deploy:
-    if: ${{ github.event.workflow_run && github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
