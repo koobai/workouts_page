@@ -10,23 +10,29 @@
 
 .buttons {
   position: absolute;
-  top: 10px;
   left: 0;
-  margin: 0 auto;
-  padding-right: 70px;
+  bottom: 85px;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding-left: 0 !important;
 }
 
 .button {
   display: inline-block;
   position: relative;
   cursor: pointer;
-  padding: 30px 20px 0 0;
   font-size: 1rem;
   text-align: center;
   color: #dfdfdf;
   font-family: $global-font-family;
 }
 
+.button:hover{
+  text-decoration: underline;
+}
 .selected {
   color: $green;
 }
@@ -72,7 +78,13 @@
 
  // 页面宽度小于900样式
  @media (max-width:900px){
-  .button {
-    padding: 20px 20px 0 0;
+  .buttons {
+    top: 4px;
+    bottom: 0;
+    height: 50px;
+    align-items: center;
+    justify-content: flex-start;
+    left: 25px;
+    right: 100px;
   }
 }
