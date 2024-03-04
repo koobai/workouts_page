@@ -238,7 +238,6 @@ const Index = () => {
         </div>
       {/* Enable Audiences in Vercel Analytics: https://vercel.com/docs/concepts/analytics/audiences/quickstart */}
       <Analytics />
-      <script defer src="https://u.koobai.com/yangle2024.js" data-website-id="8bae03fb-d784-4555-bf2d-1dbc0b242f76" data-domains="sport.koobai.com"></script>
     </Layout>
   );
 };
