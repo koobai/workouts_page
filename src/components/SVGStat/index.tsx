@@ -11,8 +11,8 @@ const GridSvg = lazy(() => loadSvgComponent(totalStat, './grid.svg'))
 const SVGStat = () => (
   <div id="svgStat">
     <Suspense fallback={<div className={styles.center}>Loading...</div>}>
-      <GridSvg className={styles.runSVG} />
       <GithubSvg className={styles.runSVG} />
+      <GridSvg className={styles.runSVG} />
     </Suspense>
   </div>
 );
