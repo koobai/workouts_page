@@ -3133,5 +3133,20 @@
 "average_speed": 5.831,
 "source": "strava",
 "streak": 2
+},
+{
+"run_id": 11048320876,
+"name": "\u508d\u665a\u884c\u8d70",
+"distance": 2038.6,
+"moving_time": "0:26:28",
+"type": "Hike",
+"start_date": "2024-03-27 12:24:54+00:00",
+"start_date_local": "2024-03-27 20:24:54",
+"location_country": "Hong Kong",
+"summary_polyline": "ajvxDkd_}U@f@E|@JfAALEF]Pa@H_@NcBb@eAZ_@Vo@z@OFO?i@oCOe@s@}AkA_B{@}ASi@UqA[eAMqAE}BGs@_BcH?OFSh@w@PKPALFd@\\LDL?VG^OhAo@ZYJ]A]W_A@QDIdCcBTKTCN@JDTZ|@hBzBfFb@x@b@xAn@dAj@vAp@rAb@nBNb@d@|@FV@NCL]^",
+"average_heartrate": 105.9,
+"average_speed": 1.284,
+"source": "strava",
+"streak": 2
 }
 ]
