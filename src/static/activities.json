@@ -3373,5 +3373,20 @@
 "average_speed": 5.098,
 "source": "strava",
 "streak": 1
+},
+{
+"run_id": 11261088112,
+"name": "\u591c\u95f4\u9a91\u884c",
+"distance": 12062.3,
+"moving_time": "0:34:54",
+"type": "Ride",
+"start_date": "2024-04-25 12:34:40+00:00",
+"start_date_local": "2024-04-25 20:34:40",
+"location_country": "Hong Kong",
+"summary_polyline": "acvxDak_}UOgAk@{BYy@wAaDc@{@Ya@s@qBuDaJ[c@k@c@Se@MMIEK?_@LcBv@iB`A{@ZwFxCSFO?MGKMyB}H_B}Eq@yAiAqB{@iB_AwB}AcEc@w@GUs@wAs@_Ck@aB_B}Dg@qB_@cA_AmBaCiEuAuC_B{De@}@k@oAuCmHyDuIgEyJm@{Aa@y@y@sAa@w@mCgGgBgFaCwIu@aDcAaH[kDaAiHQwD_@wFMeCEkAB]?[e@{HS_Ca@qISaFCuA[uBa@eE?a@Hc@IiAM{BSwBKyBGe@a@_Bi@uFCoA?oCEsBGgAGKO?DGSDOJGLGNE\\@fACp@D`AAtAF~@RfBHdAEzEE~@BrAXvBj@nCBBGNHrB?r@MzAAt@@f@JjA@hBHx@hAlHb@pD`@tH`@rDP~DFpBXpEV`CNxDHp@\\rBIPdBhI`BbGhAjDdAtD`@hAp@`BxAjE~@|Bl@bBz@nBbA|CtA`Dd@rAnB~D`G`N^`APX`@|@h@`AvAnDtA`E`BjDdB|Cv@`B|DtJPn@FFRb@Xd@R`@pBrExBhFVv@~A|DjAbDf@`Bx@fDVr@NNRB`@CVGxD{B`B}@lCoA`DmB^Fh@l@l@bA`ChFzCfHlAfCv@tBlArD?VQT",
+"average_heartrate": 122.5,
+"average_speed": 5.76,
+"source": "strava",
+"streak": 1
 }
 ]
