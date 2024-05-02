@@ -3433,5 +3433,20 @@
 "average_speed": 5.662,
 "source": "strava",
 "streak": 1
+},
+{
+"run_id": 11313514718,
+"name": "\u4e34\u5e73\u5c71",
+"distance": 5427.0,
+"moving_time": "1:13:59",
+"type": "Hike",
+"start_date": "2024-05-02 04:25:56+00:00",
+"start_date_local": "2024-05-02 12:25:56",
+"location_country": "Hong Kong",
+"summary_polyline": "ymtxDy}`}UHO@MCQGQa@c@aAo@OSCU@UHa@Tg@@KCQK]O[y@{@OSQc@Ga@DW\\s@JO^]Ra@GWEgAD]Pq@DSBB@GGWOQ]QYIQOIQBQLSl@a@FCP@NDDFDI`@KdAi@BEIUq@}@Sc@?CBAKm@Bm@Ag@DUASGIGA}@Ti@Gk@?MDQBmA@g@Ao@@GBCDE^?C@BEa@_@a@EIAIJm@FMLIb@MZQ`@ETGvCeAh@]rAiAd@UZYz@Un@c@BOCMIUUa@CCMAIMw@k@QOEQBKFE@QZUC?X[JYN[F]Aw@G_@IWUa@QUC??KBAG@GCm@c@MOg@q@I_@CD_@IFA@I]}@Qw@Uw@CUI_AEU]mAMKI@JE@ECDOFg@\\_A}@BDADCG?AFVJA@GGTTEAABEE@C?BHJMDN@APHTKR??ATHNNNh@ThBXx@VnA^r@DLCBKAKECGCFt@z@r@n@dAn@XXRd@Nz@?^E^M\\y@|AERAT@LFLHHTLLLz@xALNm@VoBbAqAz@qAb@y@\\_Bl@w@\\_@VSRKTEVBTJRPJTDr@BlB@rCMPDHNBZDrAFd@Pj@b@p@BL?HIRSJWHy@H[JYRKRATBTLRd@d@HT@NOfABpACNKXe@|@O`@Kb@C^Dd@HZr@dANZFP?VIx@C\\@VFXHTNPTRd@XPPFRB^",
+"average_heartrate": 101.7,
+"average_speed": 1.223,
+"source": "strava",
+"streak": 2
 }
 ]
