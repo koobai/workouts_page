@@ -3493,5 +3493,35 @@
 "average_speed": 5.534,
 "source": "strava",
 "streak": 1
+},
+{
+"run_id": 11844234353,
+"name": "\u508d\u665a\u9a91\u884c",
+"distance": 6373.4,
+"moving_time": "0:25:33",
+"type": "Ride",
+"start_date": "2024-07-08 11:08:58+00:00",
+"start_date_local": "2024-07-08 19:08:58",
+"location_country": "Hong Kong",
+"summary_polyline": "s`vxDeg_}Uv@`BVv@`@r@j@pAb@d@LTdApCtBpEbBlEbDxHv@zBNTh@TJ?HC^[`A_AfCkC`A{@tBmCl@q@ZSXc@nAuApEkFvAwAhAwAdDqDBAHVt@i@dCgCbDoDvAwA`EgD`@WVGH@JF^^d@r@~AjCp@|Ab@zARpA\\hDNvBVvA\\lCb@lC\\fCRlBXpBj@fFRlA`@~CF`@FJP?`@MNAD@L^PB|@Gj@IpAI|Aa@tCi@lDg@xDs@tB[jGkArASpEa@~ASzCw@`@Uj@Ej@IhAYzDw@b@C^DRNRVfAtBZp@t@bCj@zArAdDr@`Bd@tAVbAdA|Ct@dBhBrFv@nBbBjFVl@NTPPVJ\\@ZGtCmATCNHFTx@dFf@rBX~@fA|BxA`Cb@z@Xr@j@lBTdA`@jABD\\CFGDM",
+"average_heartrate": 109.8,
+"average_speed": 4.157,
+"source": "strava",
+"streak": 1
+},
+{
+"run_id": 11837374513,
+"name": "\u508d\u665a\u9a91\u884c",
+"distance": 5735.5,
+"moving_time": "0:24:52",
+"type": "Ride",
+"start_date": "2024-07-08 12:27:02+00:00",
+"start_date_local": "2024-07-08 20:27:02",
+"location_country": "Hong Kong",
+"summary_polyline": "}_oxDqo{|UC??[[kAq@}B]y@Wg@q@eAyAgCgC{FG[A]?iCEeBCGW]g@?a@Hs@TmAb@s@\\UFK@MCUSc@aAkBsE_BwE]_A_@{@U_@qA}E}@kCcAmCg@mA}AiDcAiCqAkC]uAi@M]@oDl@gCl@y@L{@Bo@H]JaCx@YH_BP{BRuARcAH}Bb@mBVcCf@iCZcGhA_AV{Cl@gBRO@MAKGIYU{BS}@Mw@y@eHUmCOgAMc@SuA]_DMaBSuAKeAa@}Cq@kDe@kBYu@wB_Eq@{@Sg@OOWKUOc@i@aA[u@_@cAq@iBaAgCoBiAeAOE_@JW?YCSMGAMDqChBeFtC_@NWBUFe@r@uAz@wCvAQDS?WQWc@e@wAaAwBcAmB[y@u@aBiAwBKMMGM?]FSHa@Zs@`@MDk@FaAd@",
+"average_heartrate": 103.4,
+"average_speed": 3.844,
+"source": "strava",
+"streak": 1
 }
 ]
