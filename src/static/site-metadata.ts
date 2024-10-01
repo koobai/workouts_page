@@ -34,12 +34,13 @@ const data: ISiteMetadataResult = {
       url: 'https://koobai.com/apps/',
     },
     {
-      name: '好物',
-      url: 'https://koobai.com/hardware/',
-    },
-    {
       name: '观影',
       url: 'https://koobai.com/movies/',
+    },
+    {
+      name: '好物',
+      url: 'https://qiszy.taobao.com',
+      target: '_blank',
     },
   ],
 };

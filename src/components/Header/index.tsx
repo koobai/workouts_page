@@ -13,6 +13,8 @@ const Header = () => {
               key={i}
               href={n.url}
               className={currentPageUrl === n.url ? 'menu-gaoliang' : ''}
+              target={n.target || '_self'} // 添加 target 属性
+              rel={n.target ? 'noopener noreferrer' : undefined} // 添加 rel 属性以提高安全性
             >
               {n.name}
             </a>
