@@ -13,8 +13,8 @@ img::-moz-selection {
 
 body {
   font-family: $global-font-family;
-  background: #1A1718;
-  max-width: 700px;
+  background: #605D5A;
+  max-width: 760px;
   margin: auto;
   font-weight: normal;
   text-rendering: optimizeLegibility;
@@ -140,20 +140,51 @@ h5 .header-link {
 }
 
 .header {
+ /* 1. 基础定位 */
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
   display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  padding: 40px 0 60px 0;
+  border-radius: 50px;
+  width: 600px; 
+  height: auto;
+  padding: 20px 30px;
+  bottom: 30px;
+  background: rgba(85, 82, 78, 0.6);
+  backdrop-filter: blur(25px) saturate(200%); 
+  -webkit-backdrop-filter: blur(25px) saturate(200%);
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+      0 0 1px rgba(0, 0, 0, 0.5),    /* 边缘加固 */
+      0 12px 40px rgba(0, 0, 0, 0.3);
+  /* 开启硬件加速 */
+  -webkit-transform: translateX(-50%) translateZ(0);
+  transform: translateX(-50%) translateZ(0);
+}
+.header svg {
+  display: flex;
+   width: 28px;       /* 统一图标大小 */
+    height: 28px;
 }
 .header-menu{
   display: flex;
-  gap: 30px;
+  gap: 31px;
   align-items: center;
   z-index: 2;
   flex-wrap: wrap;
  }
  .header-menu a {
-  color: #fff;
-  font-size: 1rem;
+  color: #B8ABA2;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column; /* 核心：开启上下排列 */
+  align-items: center;    /* 居中对齐 */
+  gap: 4px;              /* 图标与文字的间距 */
  }
  .header-menu a:hover {
   text-decoration: underline;
@@ -166,17 +197,17 @@ h5 .header-link {
   z-index: 2;
  }
 .header-right svg{
-  fill: #827478;
+  fill: #B8ABA2;
   width: 20px;
   height: 20px;
   display: block;
 }
 .header-right svg:hover{
-  fill: #666;
+  fill: #C3AACC;
 }
 .about-koobai img{
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   transition: opacity .3s ease-in-out;
   display: block;
@@ -185,25 +216,35 @@ h5 .header-link {
   opacity: 0.6;
 }
 .menu-gaoliang{
-  color: #FC9151 !important;
+  color: #C3AACC !important;
 }
+.menu-gaoliang svg {
+    transform: scale(1.1); 
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
  // 页面宽度小于900样式
 @media (max-width:900px){
   body {
     padding: 0 20px 20px 20px;
   }
   .header {
-    padding: 25px 0 25px 0;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px; 
+  height: 50px;
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  align-items: center;     /* 垂直居中 */
   }
   .header-right {
-    grid-gap: 0; 
+    grid-gap: 0;
+    margin-left: 0;
+
    }
   .header-right svg{
     display: none;
-  }
-  .about-koobai img{
-    width: 32px;
-    height: 32px;
   }
   .pagetitle {
     display: none;
@@ -232,7 +273,7 @@ h5 .header-link {
   right: 0;
   top: 0;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 35%, #1A1718 100%);
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 35%, #605D5A 100%);
   pointer-events: none;
 }
 .pagetitle {
@@ -244,7 +285,7 @@ h5 .header-link {
   padding-bottom: 20px;
   text-align: center;
   color: #dfdfdf;
-  margin-top: 400px;
+  margin-top: 500px;
   position: relative;
   z-index: 2;
 }
@@ -259,9 +300,6 @@ h5 .header-link {
 // 夜间模式页面样式
 @media (prefers-color-scheme: dark) {
   body {
-    background: #1A1718;
+    background: #605D5A;
   }
-  .header-menu a {
-    color: #dfdfdf;
-   }
 }

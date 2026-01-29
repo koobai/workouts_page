@@ -20,27 +20,33 @@ const data: ISiteMetadataResult = {
     {
       name: '首页',
       url: 'https://koobai.com',
+      icon: 'home'
     },
     {
       name: '博文',
       url: 'https://koobai.com/posts/',
-    },
-    {
-      name: '骑行',
-      url: '/',
-    },
-    {
-      name: '软件',
-      url: 'https://koobai.com/apps/',
+      icon: 'bowen'
     },
     {
       name: '观影',
       url: 'https://koobai.com/movies/',
+      icon: 'guany'
     },
     {
-      name: '好物',
+      name: '软件',
+      url: 'https://koobai.com/apps/',
+      icon: 'ruanj'
+    },
+    {
+      name: '骑行',
+      url: '/',
+      icon: 'qixing'
+    },
+    {
+      name: '店铺',
       url: 'https://qiszy.taobao.com',
       target: '_blank',
+      icon: 'haowu'
     },
   ],
 };
