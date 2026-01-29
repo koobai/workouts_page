@@ -18,7 +18,7 @@ const data: ISiteMetadataResult = {
   keywords: 'workouts, running, cycling, riding, roadtrip, hiking, swimming',
   navLinks: [
     {
-      name: '首页',
+      name: '唠叨',
       url: 'https://koobai.com',
       icon: 'home'
     },
