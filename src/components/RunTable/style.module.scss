@@ -13,7 +13,7 @@
 .runTable {
   width: 100%;
   font-variant: tabular-nums;
-  margin-bottom: 40px;
+  margin-bottom: 150px;
 
   thead {
     color: $light;
@@ -66,4 +66,7 @@
   .runTable {
     width: 150%;
   }
+  .runTable {
+  margin-bottom: 60px;
+}
  }
