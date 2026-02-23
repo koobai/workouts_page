@@ -1,4 +1,4 @@
-import { formatPace, colorFromType, formatRunTime, Activity, RunIds } from '@/utils/utils';
+import { formatSpeedOrPace, colorFromType, formatRunTime, Activity, RunIds } from '@/utils/utils';
 import styles from './style.module.scss';
 
 interface IRunRowProperties {
@@ -11,7 +11,7 @@ interface IRunRowProperties {
 
 const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IRunRowProperties) => {
   const distance = (run.distance / 1000.0).toFixed(2);
-  const paceParts = run.average_speed ? formatPace(run.average_speed) : null;
+  const paceParts = run.average_speed ? formatSpeedOrPace(run.average_speed, run.type) : null;
   const heartRate = run.average_heartrate;
   const type = run.type;
   const runTime = formatRunTime(run.moving_time);
