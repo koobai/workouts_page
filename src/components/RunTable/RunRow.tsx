@@ -12,6 +12,18 @@ interface IRunRowProperties {
 const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IRunRowProperties) => {
   const distance = (run.distance / 1000.0).toFixed(2);
   const paceParts = run.average_speed ? formatSpeedOrPace(run.average_speed, run.type) : null;
+  let paceUI: React.ReactNode = paceParts;
+  if (typeof paceParts === 'string' && paceParts.includes(' ')) {
+    const parts = paceParts.split(' ');
+    paceUI = (
+      <span>
+        {parts[0]}
+        <span style={{ fontSize: '0.75em', marginLeft: '3px', opacity: 0.85 }}>
+          {parts[1]}
+        </span>
+      </span>
+    );
+  }
   const heartRate = run.average_heartrate;
   const type = run.type;
   const runTime = formatRunTime(run.moving_time);
@@ -35,7 +47,7 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
       <td>{run.name}</td>
       <td>{type}</td>
       <td>{distance}</td>
-      <td>{paceParts}</td>
+      <td>{paceUI}</td>
       <td>{heartRate && heartRate.toFixed(0)}</td>
       <td>{runTime}</td>
       <td className={styles.runDate}>{run.start_date_local}</td>
