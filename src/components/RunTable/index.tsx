@@ -53,7 +53,7 @@ const RunTable = ({
   const sortFuncMap = new Map([
     ['类型', sortTypeFunc],
     ['公里', sortKMFunc],
-    ['速度', sortPaceFunc],
+    ['配速/时速', sortPaceFunc],
     ['心率', sortBPMFunc],
     ['锻炼', sortRunTimeFunc],
     ['日期', sortDateFuncClick],

@@ -62,9 +62,19 @@ const formatPace = (d: number): string => {
 };
 
 const formatSpeedOrPace = (speed: number, type: string): string => {
+  if (Number.isNaN(speed) || speed === 0) return '0';
+
   if (type === 'Ride') {
     return `${(speed * 3.6).toFixed(2)} km/h`;
   }
+
+  if (type === 'Swim') {
+    const pace100m = 100.0 / speed; 
+    const minutes = Math.floor(pace100m / 60.0);
+    const seconds = Math.floor(pace100m - minutes * 60.0);
+    return `${minutes}'${seconds.toFixed(0).toString().padStart(2, '0')}" /100m`;
+  }
+  
   return formatPace(speed);
 };
 
