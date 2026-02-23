@@ -210,7 +210,7 @@ const Index = () => {
       </div>*/}
       <div className='page-background'>
       <div className="pagetitle">
-      越来越肥胖的身体，导致双脚都扛不住了，没走几下就累。趁着现在喜欢骑行，就多动动。以下为以骑行为主的锻炼记录，地图默认展示的是今年轨迹热图。
+      2025 年检查出来二型糖尿病，经过饮食及运动结合，已减重二十多斤。但随着不运动及饮食的不控制，体重开始反弹～今年的目标体重 130-140斤。
       </div>
       <div className="page-map">
         <RunMap
