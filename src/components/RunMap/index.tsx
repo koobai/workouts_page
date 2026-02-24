@@ -62,17 +62,18 @@ const RunMap = ({
   const [animationPoints, setAnimationPoints] = useState(0);
 
   useEffect(() => {
-    // 当且仅当只显示一条运动轨迹时（点击进入详情），触发画线动画
     if (geoData && geoData.features && geoData.features.length === 1) {
       const totalPoints = geoData.features[0].geometry.coordinates.length;
       let current = 0;
       let animationFrameId: number;
 
       const animate = () => {
-        // 每次画的步长，数字越大画得越快 (把总点数除以 100，保证每次动画大约 2-3 秒画完)
-        current += Math.max(1, Math.floor(totalPoints / 100));
+        let step = totalPoints / 300;
+        if (step < 0.5) step = 0.5;
+
+        current += step;
         if (current <= totalPoints) {
-          setAnimationPoints(current);
+          setAnimationPoints(Math.floor(current)); // 取整后截取坐标
           animationFrameId = requestAnimationFrame(animate);
         } else {
           setAnimationPoints(totalPoints); // 画完了
@@ -207,37 +208,15 @@ const RunMap = ({
           }}
           filter={filterCountries}
         />
-        
-        {/* 👇 把动态样式直接升级给原来的 runs2 图层 👇 */}
         <Layer
           id="runs2"
           type="line"
           paint={{
             'line-color': ['get', 'color'], // 基础颜色保持不变
+            'line-width': isSingleRun ? 5 : (isBigMap && lights ? 1 : 2),
             
-            // 动态粗细：心率越高，线越粗
-            'line-width': [
-              'step',
-              ['get', 'average_heartrate'],
-              isBigMap && lights ? 1 : 2, // 默认粗细
-              1, 1.5,
-              115, 2,
-              130, 2.5,
-              145, 3
-            ],
-            
-            'line-dasharray': dash, // 保持虚线逻辑
-            
-            // 动态透明度：心率越高，线越实心
-            'line-opacity': [
-              'step',
-              ['get', 'average_heartrate'],
-              0.8,      // 默认透明度
-              1, 0.3,
-              115, 0.6,
-              130, 0.8,
-              145, 1.0
-            ],
+            'line-dasharray': dash,
+            'line-opacity': isSingleRun || isBigMap || !lights ? 1 : LINE_OPACITY,
             'line-blur': 1,
           }}
           layout={{

@@ -203,7 +203,6 @@ const geoJsonForRuns = (runs: Activity[]): FeatureCollection<LineString> => ({
       },
       properties: {
         'color': colorFromType(run.type),
-        'average_heartrate': run.average_heartrate || 0,
       },
       name: run.name,
     };
