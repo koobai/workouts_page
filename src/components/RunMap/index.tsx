@@ -193,6 +193,25 @@ const RunMap = ({
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
       interactiveLayerIds={['runs2-hover-area']}
+      cursor={hoverInfo ? 'pointer' : 'grab'} 
+      
+      onClick={(e) => {                       
+        if (e.features && e.features.length > 0) {
+          const validRuns = e.features.filter(
+            (f) => f.properties && f.properties.start_date_local && f.properties.run_id
+          );
+          
+          if (validRuns.length > 0) {
+            const sortedFeatures = [...validRuns].sort((a, b) => {
+              const timeA = new Date(a.properties.start_date_local.replace(' ', 'T')).getTime();
+              const timeB = new Date(b.properties.start_date_local.replace(' ', 'T')).getTime();
+              return timeB - timeA;
+            });
+            const targetRun = sortedFeatures[sortedFeatures.length - 1]; 
+            window.location.hash = `#run_${targetRun.properties.run_id}`;
+          }
+        }
+      }}
       onMouseMove={(e) => {          
         if (e.features && e.features.length > 0) {
           const validRuns = e.features.filter(
