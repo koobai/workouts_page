@@ -125,14 +125,6 @@
   margin-top: 6px;
   text-align: center;
 }
-.mapboxgl-popup-content {
-  background: transparent !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-}
-.mapboxgl-popup-tip {
-  display: none !important;
-}
  // 页面宽度小于900样式
  @media (max-width:900px){
   .buttons {

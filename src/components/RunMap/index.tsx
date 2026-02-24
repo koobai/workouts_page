@@ -276,12 +276,22 @@ const RunMap = ({
           offset={10}
           className={styles.popupWrapper}
         >
+          <style>{`
+            .mapboxgl-popup-content {
+              background: none !important;
+              padding: 0 !important;
+              box-shadow: none !important;
+            }
+            .mapboxgl-popup-tip {
+              display: none !important;
+            }
+          `}</style>
+          
           <div className={styles.tooltipContainer}>
             {/* 只有 1 条路线时 */}
             {hoverInfo.features.length === 1 ? (
               <>
-                <div className={styles.singleTitle}>
-                  <span className={styles.dot} style={{ color: hoverInfo.features[0].properties.color }}>●</span>
+                <div className={styles.singleTitle} style={{ color: hoverInfo.features[0].properties.color }}>
                   {hoverInfo.features[0].properties.name}
                 </div>
                 <div className={styles.subText}>
@@ -289,7 +299,7 @@ const RunMap = ({
                 </div>
               </>
             ) : (
-              /* 有多条重叠路线时 */
+              /* 有多条重叠路线时：采用你定制的精简文案 */
               (() => {
                 const sortedFeatures = [...hoverInfo.features].sort((a, b) => 
                   new Date(b.properties.start_date_local.replace(' ', 'T')).getTime() - 
@@ -297,29 +307,17 @@ const RunMap = ({
                 );
                 
                 const latestRun = sortedFeatures[0]; // 最近一次
-                const earliestRun = sortedFeatures[sortedFeatures.length - 1]; // 第一次
                 const totalOverlappedDistance = sortedFeatures.reduce((sum, f) => sum + f.properties.distance, 0) / 1000;
 
                 return (
-                  <>
-                    <div className={styles.multiHeader}>
-                      📍 熟悉的轨迹：经过 {hoverInfo.features.length} 次
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '13px', color: '#fff' }}>
+                      此路段共经过 {hoverInfo.features.length} 次，总里程：{totalOverlappedDistance.toFixed(1)} KM。
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div className={styles.subText}>
-                        🗓️ 首次涉足：{earliestRun.properties.start_date_local.slice(0, 10)}
-                      </div>
-                      <div className={styles.subText}>
-                        🔥 最近探访：{latestRun.properties.start_date_local.slice(0, 10)}
-                      </div>
-                      <div className={styles.subText}>
-                        🚴 最近一次：<span className={styles.dot} style={{ color: latestRun.properties.color }}>●</span> {latestRun.properties.name} ({(latestRun.properties.distance / 1000).toFixed(1)} KM)
-                      </div>
-                      <div className={styles.subText} style={{ borderTop: '1px dashed #555', paddingTop: '8px', marginTop: '4px' }}>
-                        🌍 覆盖路线总里程：{totalOverlappedDistance.toFixed(1)} KM
-                      </div>
+                    <div className={styles.subText} style={{ fontSize: '12px', marginBottom: 0 }}>
+                      最近一次：<span style={{ color: latestRun.properties.color }}>{latestRun.properties.name}</span> {(latestRun.properties.distance / 1000).toFixed(2)} KM ({latestRun.properties.start_date_local.slice(0, 10)})
                     </div>
-                  </>
+                  </div>
                 );
               })()
             )}
