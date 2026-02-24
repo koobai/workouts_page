@@ -67,6 +67,13 @@ class Generator:
             if IGNORE_BEFORE_SAVING:
                 activity.summary_polyline = filter_out(activity.summary_polyline)
             activity.source = "strava"
+            try:
+                detailed_act = self.client.get_activity(activity.id)
+                detailed_act.source = "strava"
+                activity = detailed_act
+            except Exception as e:
+                print(f"获取详细数据失败: {e}")
+                pass
             created = update_or_create_activity(self.session, activity)
             if created:
                 sys.stdout.write("+")
