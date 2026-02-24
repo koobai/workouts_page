@@ -34,7 +34,20 @@ interface IRunMapProps {
   geoData: FeatureCollection<RPGeometry>;
   thisYear: string;
 }
-
+const buildingLayer: any = {
+  id: '3d-buildings',
+  source: 'composite',
+  'source-layer': 'building',
+  filter: ['==', 'extrude', 'true'],
+  type: 'fill-extrusion',
+  minzoom: 14, 
+  paint: {
+    'fill-extrusion-color': '#4a4a4a',
+    'fill-extrusion-height': ['get', 'height'], 
+    'fill-extrusion-base': ['get', 'min_height'],
+    'fill-extrusion-opacity': 0.7,
+  }
+};
 const RunMap = ({
   title,
   viewState,
@@ -139,13 +152,14 @@ const RunMap = ({
       mapboxAccessToken={MAPBOX_TOKEN}
       terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
     >
-      <Source
-          id="mapbox-dem"
-          type="raster-dem"
-          url="mapbox://mapbox.mapbox-terrain-dem-v1"
-          tileSize={512}
-          maxzoom={14}
-        />
+    <Source
+        id="mapbox-dem"
+        type="raster-dem"
+        url="mapbox://mapbox.mapbox-terrain-dem-v1"
+        tileSize={512}
+        maxzoom={14}
+      />
+      <Layer {...buildingLayer} />
       <RunMapButtons changeYear={changeYear} thisYear={thisYear} />
       <Source id="data" type="geojson" data={geoData}>
         <Layer
