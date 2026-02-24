@@ -101,30 +101,30 @@
 
 .singleTitle { 
   font-weight: bold; 
-  font-size: 14px; 
+  font-size: 1rem; 
 }
 
 .subText { 
   color: #aaa; 
-  font-size: 12px; 
+  font-size: 0.9rem; 
 }
 
 /* --- 多条重叠路线时的排版 --- */
 .multiWrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .multiStat {
   font-weight: bold;
-  font-size: 13px;
+  font-size: 1rem;
   color: #fff;
 }
 
 .multiDate {
   color: #aaa; 
-  font-size: 12px; 
+  font-size: 0.9rem; 
   margin-top: 4px;
 }
 

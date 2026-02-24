@@ -315,15 +315,14 @@ const RunMap = ({
                       此路段共经过 {hoverInfo.features.length} 次
                     </div>
                     <div className={styles.multiStat}>
-                      总里程：{totalOverlappedDistance.toFixed(1)} KM
+                      总里程 {totalOverlappedDistance.toFixed(1)} KM
                     </div>
                     <div className={styles.multiDate}>
-                      最近一次：{latestRun.properties.start_date_local.slice(0, 10)}
+                      首次经过 {earliestRun.properties.start_date_local.slice(0, 10)}
                     </div>
                     <div className={styles.multiActivity}>
-                      <span style={{ color: latestRun.properties.color }}>{latestRun.properties.name}</span> {(latestRun.properties.distance / 1000).toFixed(2)} KM
+                      <span style={{ color: earliestRun.properties.color }}>{earliestRun.properties.name}</span> {(earliestRun.properties.distance / 1000).toFixed(2)} KM
                     </div>
-                  </div>
                 );
               })()
             )}
