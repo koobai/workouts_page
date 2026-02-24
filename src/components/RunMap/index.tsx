@@ -214,9 +214,11 @@ const RunMap = ({
           paint={{
             'line-color': ['get', 'color'], // 基础颜色保持不变
             'line-width': isSingleRun ? 5 : (isBigMap && lights ? 1 : 2),
+            'line-width-transition': { duration: 0 },
             
             'line-dasharray': dash,
             'line-opacity': isSingleRun || isBigMap || !lights ? 1 : LINE_OPACITY,
+            'line-opacity-transition': { duration: 0 },
             'line-blur': 1,
           }}
           layout={{
