@@ -290,16 +290,16 @@ const RunMap = ({
           <div className={styles.tooltipContainer}>
             {/* 只有 1 条路线时 */}
             {hoverInfo.features.length === 1 ? (
-              <>
+              <div className={styles.singleWrapper}>
                 <div className={styles.singleTitle} style={{ color: hoverInfo.features[0].properties.color }}>
                   {hoverInfo.features[0].properties.name}
                 </div>
                 <div className={styles.subText}>
                   {hoverInfo.features[0].properties.start_date_local.slice(0, 10)} · {(hoverInfo.features[0].properties.distance / 1000).toFixed(2)} KM
                 </div>
-              </>
+              </div>
             ) : (
-              /* 有多条重叠路线时：采用你定制的精简文案 */
+              /* 有多条重叠路线时：拆分为清晰的 4 行 */
               (() => {
                 const sortedFeatures = [...hoverInfo.features].sort((a, b) => 
                   new Date(b.properties.start_date_local.replace(' ', 'T')).getTime() - 
@@ -310,12 +310,18 @@ const RunMap = ({
                 const totalOverlappedDistance = sortedFeatures.reduce((sum, f) => sum + f.properties.distance, 0) / 1000;
 
                 return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '13px', color: '#fff' }}>
-                      此路段共经过 {hoverInfo.features.length} 次，总里程：{totalOverlappedDistance.toFixed(1)} KM。
+                  <div className={styles.multiWrapper}>
+                    <div className={styles.multiStat}>
+                      此路段共经过 {hoverInfo.features.length} 次
                     </div>
-                    <div className={styles.subText} style={{ fontSize: '12px', marginBottom: 0 }}>
-                      最近一次：<span style={{ color: latestRun.properties.color }}>{latestRun.properties.name}</span> {(latestRun.properties.distance / 1000).toFixed(2)} KM ({latestRun.properties.start_date_local.slice(0, 10)})
+                    <div className={styles.multiStat}>
+                      总里程：{totalOverlappedDistance.toFixed(1)} KM
+                    </div>
+                    <div className={styles.multiDate}>
+                      最近一次：{latestRun.properties.start_date_local.slice(0, 10)}
+                    </div>
+                    <div className={styles.multiActivity}>
+                      <span style={{ color: latestRun.properties.color }}>{latestRun.properties.name}</span> {(latestRun.properties.distance / 1000).toFixed(2)} KM
                     </div>
                   </div>
                 );

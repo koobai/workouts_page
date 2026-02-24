@@ -92,38 +92,45 @@
   backdrop-filter: blur(6px);
 }
 
+/* --- 1条路线时的排版 --- */
+.singleWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .singleTitle { 
   font-weight: bold; 
-  margin-bottom: 6px; 
   font-size: 14px; 
 }
-.dot { 
-  margin-right: 6px; 
-}
+
 .subText { 
   color: #aaa; 
   font-size: 12px; 
-  margin-bottom: 4px; 
-}
-.multiHeader { 
-  border-bottom: 1px solid #555; 
-  padding-bottom: 8px; 
-  margin-bottom: 8px; 
-  font-weight: bold; 
-  color: #fff; 
-  font-size: 14px; 
 }
 
-.multiItem {
-  margin-bottom: 4px;
-  white-space: nowrap;
+/* --- 多条重叠路线时的排版 --- */
+.multiWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.ellipsis {
-  color: #888;
-  font-size: 11px;
-  margin-top: 6px;
-  text-align: center;
+.multiStat {
+  font-weight: bold;
+  font-size: 13px;
+  color: #fff;
+}
+
+.multiDate {
+  color: #aaa; 
+  font-size: 12px; 
+  margin-top: 4px;
+}
+
+.multiActivity {
+  color: #aaa; 
+  font-size: 12px; 
 }
  // 页面宽度小于900样式
  @media (max-width:900px){
