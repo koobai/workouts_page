@@ -196,9 +196,14 @@ const RunMap = ({
       cursor={hoverInfo ? 'pointer' : 'grab'} 
       
       onClick={(e) => {                       
+        if (isSingleRun) {
+          window.location.hash = ''; 
+          return;
+        }
+
         if (e.features && e.features.length > 0) {
           const validRuns = e.features.filter(
-            (f) => f.properties && f.properties.start_date_local && f.properties.run_id
+            (f) => f.properties && f.properties.start_date_local && (f.properties.run_id || f.properties.id)
           );
           
           if (validRuns.length > 0) {
@@ -208,7 +213,9 @@ const RunMap = ({
               return timeB - timeA;
             });
             const targetRun = sortedFeatures[sortedFeatures.length - 1]; 
-            window.location.hash = `#run_${targetRun.properties.run_id}`;
+            
+            const runId = targetRun.properties.run_id || targetRun.properties.id;
+            window.location.hash = `#run_${runId}`;
           }
         }
       }}
