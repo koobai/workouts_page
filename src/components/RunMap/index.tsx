@@ -323,6 +323,7 @@ const RunMap = ({
                     <div className={styles.multiActivity}>
                       <span style={{ color: earliestRun.properties.color }}>{earliestRun.properties.name}</span> {(earliestRun.properties.distance / 1000).toFixed(2)} KM
                     </div>
+                  </div>
                 );
               })()
             )}
