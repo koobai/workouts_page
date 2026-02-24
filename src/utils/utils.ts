@@ -344,6 +344,7 @@ export interface IViewState {
   longitude?: number;
   latitude?: number;
   zoom?: number;
+  pitch?: number;
 }
 
 const getBoundsForGeoData = (
@@ -376,7 +377,7 @@ const getBoundsForGeoData = (
   if (features.length > 1) {
     zoom = 11.5;
   }
-  return { longitude, latitude, zoom };
+  return { longitude, latitude, zoom, pitch: 45 };
 };
 
 const filterYearRuns = (run: Activity, year: string) => {
