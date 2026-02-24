@@ -206,7 +206,6 @@ const geoJsonForRuns = (runs: Activity[]): FeatureCollection<LineString> => ({
         'name': formatRunName(run.name, run.start_date_local, run.type),
         'distance': run.distance,
         'start_date_local': run.start_date_local,
-        'run_id': run.run_id || run.id,
       },
       name: run.name,
     };

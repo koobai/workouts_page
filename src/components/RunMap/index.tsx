@@ -193,32 +193,6 @@ const RunMap = ({
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
       interactiveLayerIds={['runs2-hover-area']}
-      cursor={hoverInfo ? 'pointer' : 'grab'} 
-      
-      onClick={(e) => {                       
-        if (isSingleRun) {
-          window.location.hash = ''; 
-          return;
-        }
-
-        if (hoverInfo && hoverInfo.features && hoverInfo.features.length > 0) {
-          const validRuns = hoverInfo.features.filter(
-            (f) => f.properties && f.properties.start_date_local && (f.properties.run_id || f.properties.id)
-          );
-          
-          if (validRuns.length > 0) {
-            const sortedFeatures = [...validRuns].sort((a, b) => {
-              const timeA = new Date(a.properties.start_date_local.replace(' ', 'T')).getTime();
-              const timeB = new Date(b.properties.start_date_local.replace(' ', 'T')).getTime();
-              return timeB - timeA;
-            });
-            const targetRun = sortedFeatures[sortedFeatures.length - 1]; 
-            
-            const runId = targetRun.properties.run_id || targetRun.properties.id;
-            window.location.hash = `run_${runId}`;
-          }
-        }
-      }}
       onMouseMove={(e) => {          
         if (e.features && e.features.length > 0) {
           const validRuns = e.features.filter(
@@ -345,13 +319,13 @@ const RunMap = ({
                 return (
                   <div className={styles.multiWrapper}>
                     <div className={styles.multiStat}>
-                      此路段共经过 {hoverInfo.features.length} 次
+                      此路段共经过 {hoverInfo.features.length} 趟
                     </div>
                     <div className={styles.multiStat}>
                       总里程 {totalOverlappedDistance.toFixed(1)} KM
                     </div>
                     <div className={styles.multiDate}>
-                      首次经过 {earliestRun.properties.start_date_local.slice(0, 10)}
+                      首趟经过 {earliestRun.properties.start_date_local.slice(0, 10)}
                     </div>
                     <div className={styles.multiActivity}>
                       <span style={{ color: earliestRun.properties.color }}>{earliestRun.properties.name}</span> {(earliestRun.properties.distance / 1000).toFixed(2)} KM
