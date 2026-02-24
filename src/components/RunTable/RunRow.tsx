@@ -1,4 +1,4 @@
-import { formatSpeedOrPace, formatRunName, colorFromType, formatRunTime, Activity, RunIds } from '@/utils/utils';
+import { formatSpeedOrPace, formatRunName, getHeartRateColor, colorFromType, formatRunTime, Activity, RunIds } from '@/utils/utils';
 import styles from './style.module.scss';
 
 interface IRunRowProperties {
@@ -48,7 +48,9 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
       <td>{type}</td>
       <td>{distance}</td>
       <td>{paceUI}</td>
-      <td>{heartRate && heartRate.toFixed(0)}</td>
+      <td style={{ color: heartRate ? getHeartRateColor(heartRate) : 'inherit' }}>
+        {heartRate ? heartRate.toFixed(0) : '-'}
+      </td>
       <td>{runTime}</td>
       <td className={styles.runDate}>{run.start_date_local}</td>
     </tr>

@@ -458,6 +458,14 @@ export {
   formatRunTime,
   convertMovingTime2Sec,
   formatRunName,
+  getHeartRateColor,
+};
+
+const getHeartRateColor = (bpm: number): string => {
+  if (bpm < 120) return '#78909c'; // 莫兰迪蓝灰 (轻松燃脂，散步/徒步)
+  if (bpm < 145) return '#66bb6a'; // 清新绿 (有氧耐力，轻松跑/骑行)
+  if (bpm < 165) return '#ffa726'; // 活力橙 (乳酸阈值，有点累的强度)
+  return '#ef5350';                // 警戒红 (无氧极限，冲刺阶段)
 };
 
 const formatRunName = (name: string, startDateLocal: string, type: string): string => {
