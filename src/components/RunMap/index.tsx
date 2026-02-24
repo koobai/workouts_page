@@ -189,7 +189,7 @@ const RunMap = ({
       {...viewState}
       onMove={onMove}
       style={style}
-      mapStyle="mapbox://styles/mapbox/dark-v10"
+      mapStyle="mapbox://styles/mapbox/dark-v11"
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
       interactiveLayerIds={['runs2-hover-area']}
