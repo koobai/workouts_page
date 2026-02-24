@@ -195,16 +195,22 @@ const RunMap = ({
       interactiveLayerIds={['runs2-hover-area']}
       onMouseMove={(e) => {          
         if (e.features && e.features.length > 0) {
-          setHoverInfo({
-            longitude: e.lngLat.lng,
-            latitude: e.lngLat.lat,
-            features: e.features,
-          });
-        } else {
-          setHoverInfo(null);
+          const validRuns = e.features.filter(
+            (f) => f.properties && f.properties.start_date_local
+          );
+
+          if (validRuns.length > 0) {
+            setHoverInfo({
+              longitude: e.lngLat.lng,
+              latitude: e.lngLat.lat,
+              features: validRuns,
+            });
+            return;
+          }
         }
+        setHoverInfo(null);
       }}
-      onMouseLeave={() => setHoverInfo(null)} // 👈 3. 鼠标移开时清空
+      onMouseLeave={() => setHoverInfo(null)}
     >
       <RunMapButtons changeYear={changeYear} thisYear={thisYear} />
       <Source id="data" type="geojson" data={displayData}>
@@ -301,10 +307,11 @@ const RunMap = ({
             ) : (
               /* 有多条重叠路线时：拆分为清晰的 4 行 */
               (() => {
-                const sortedFeatures = [...hoverInfo.features].sort((a, b) => 
-                  new Date(b.properties.start_date_local.replace(' ', 'T')).getTime() - 
-                  new Date(a.properties.start_date_local.replace(' ', 'T')).getTime()
-                );
+                const sortedFeatures = [...hoverInfo.features].sort((a, b) => {
+                  const timeA = a.properties?.start_date_local ? new Date(a.properties.start_date_local.replace(' ', 'T')).getTime() : 0;
+                  const timeB = b.properties?.start_date_local ? new Date(b.properties.start_date_local.replace(' ', 'T')).getTime() : 0;
+                  return timeB - timeA;
+                });
                 
                 const earliestRun = sortedFeatures[sortedFeatures.length - 1];
                 const totalOverlappedDistance = sortedFeatures.reduce((sum, f) => sum + f.properties.distance, 0) / 1000;
