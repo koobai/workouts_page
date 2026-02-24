@@ -1,5 +1,5 @@
 import MapboxLanguage from '@mapbox/mapbox-gl-language';
-import React, {useRef, useCallback, useState} from 'react';
+import React, {useRef, useCallback, useState, useEffect, useMemo} from 'react';
 import Map, {Layer, Source, FullscreenControl, NavigationControl, MapRef} from 'react-map-gl';
 import {MapInstance} from "react-map-gl/src/types/lib";
 import useActivities from '@/hooks/useActivities';
@@ -34,20 +34,7 @@ interface IRunMapProps {
   geoData: FeatureCollection<RPGeometry>;
   thisYear: string;
 }
-const buildingLayer: any = {
-  id: '3d-buildings',
-  source: 'composite',
-  'source-layer': 'building',
-  filter: ['==', 'extrude', 'true'],
-  type: 'fill-extrusion',
-  minzoom: 14, 
-  paint: {
-    'fill-extrusion-color': '#4a4a4a',
-    'fill-extrusion-height': ['get', 'height'], 
-    'fill-extrusion-base': ['get', 'min_height'],
-    'fill-extrusion-opacity': 0.7,
-  }
-};
+
 const RunMap = ({
   title,
   viewState,
@@ -71,6 +58,55 @@ const RunMap = ({
       }
     })
   }
+  // --- 轨迹动画逻辑开始 ---
+  const [animationPoints, setAnimationPoints] = useState(0);
+
+  useEffect(() => {
+    // 当且仅当只显示一条运动轨迹时（点击进入详情），触发画线动画
+    if (geoData && geoData.features && geoData.features.length === 1) {
+      const totalPoints = geoData.features[0].geometry.coordinates.length;
+      let current = 0;
+      let animationFrameId: number;
+
+      const animate = () => {
+        // 每次画的步长，数字越大画得越快 (把总点数除以 100，保证每次动画大约 2-3 秒画完)
+        current += Math.max(1, Math.floor(totalPoints / 100));
+        if (current <= totalPoints) {
+          setAnimationPoints(current);
+          animationFrameId = requestAnimationFrame(animate);
+        } else {
+          setAnimationPoints(totalPoints); // 画完了
+        }
+      };
+      animate();
+
+      return () => cancelAnimationFrame(animationFrameId);
+    } else {
+      // 全局概览模式：不播动画
+      setAnimationPoints(0);
+    }
+  }, [geoData]);
+
+  // 根据动画进度，动态截取坐标点
+  const displayData = useMemo(() => {
+    if (geoData && geoData.features.length === 1 && animationPoints > 0) {
+      const feature = geoData.features[0];
+      return {
+        ...geoData,
+        features: [
+          {
+            ...feature,
+            geometry: {
+              ...feature.geometry,
+              coordinates: feature.geometry.coordinates.slice(0, animationPoints),
+            },
+          },
+        ],
+      };
+    }
+    return geoData; // 全局模式直接返回完整数据
+  }, [geoData, animationPoints]);
+  // --- 轨迹动画逻辑结束 ---
   const mapRefCallback = useCallback(
     (ref: MapRef) => {
       if (ref !== null) {
@@ -150,18 +186,9 @@ const RunMap = ({
       mapStyle="mapbox://styles/mapbox/dark-v10"
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
-      terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
     >
-    <Source
-        id="mapbox-dem"
-        type="raster-dem"
-        url="mapbox://mapbox.mapbox-terrain-dem-v1"
-        tileSize={512}
-        maxzoom={14}
-      />
-      <Layer {...buildingLayer} />
       <RunMapButtons changeYear={changeYear} thisYear={thisYear} />
-      <Source id="data" type="geojson" data={geoData}>
+      <Source id="data" type="geojson" data={displayData}>
         <Layer
           id="province"
           type="fill"
@@ -180,14 +207,37 @@ const RunMap = ({
           }}
           filter={filterCountries}
         />
+        
+        {/* 👇 把动态样式直接升级给原来的 runs2 图层 👇 */}
         <Layer
           id="runs2"
           type="line"
           paint={{
-            'line-color': ['get', 'color'],
-            'line-width': isBigMap && lights ? 1 : 2,
-            'line-dasharray': dash,
-            'line-opacity': isSingleRun || isBigMap || !lights ? 1 : LINE_OPACITY,
+            'line-color': ['get', 'color'], // 基础颜色保持不变
+            
+            // 动态粗细：心率越高，线越粗
+            'line-width': [
+              'step',
+              ['get', 'average_heartrate'],
+              isBigMap && lights ? 1 : 2, // 默认粗细
+              1, 1.5,
+              115, 2,
+              130, 2.5,
+              145, 3
+            ],
+            
+            'line-dasharray': dash, // 保持虚线逻辑
+            
+            // 动态透明度：心率越高，线越实心
+            'line-opacity': [
+              'step',
+              ['get', 'average_heartrate'],
+              0.8,      // 默认透明度
+              1, 0.3,
+              115, 0.6,
+              130, 0.8,
+              145, 1.0
+            ],
             'line-blur': 1,
           }}
           layout={{

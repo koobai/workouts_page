@@ -203,6 +203,7 @@ const geoJsonForRuns = (runs: Activity[]): FeatureCollection<LineString> => ({
       },
       properties: {
         'color': colorFromType(run.type),
+        'average_heartrate': run.average_heartrate || 0,
       },
       name: run.name,
     };
@@ -344,7 +345,6 @@ export interface IViewState {
   longitude?: number;
   latitude?: number;
   zoom?: number;
-  pitch?: number;
 }
 
 const getBoundsForGeoData = (
@@ -377,7 +377,7 @@ const getBoundsForGeoData = (
   if (features.length > 1) {
     zoom = 11.5;
   }
-  return { longitude, latitude, zoom, pitch: 45 };
+  return { longitude, latitude, zoom };
 };
 
 const filterYearRuns = (run: Activity, year: string) => {
