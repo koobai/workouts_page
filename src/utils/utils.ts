@@ -457,4 +457,55 @@ export {
   colorFromType,
   formatRunTime,
   convertMovingTime2Sec,
+  formatRunName,
+};
+
+const formatRunName = (name: string, startDateLocal: string, type: string): string => {
+  // 1. 获取运动的小时数 (把空格替换为T是为了兼容不同浏览器的日期解析)
+  const date = new Date(startDateLocal.replace(' ', 'T'));
+  const hour = date.getHours();
+
+  // 2. 咱们自己定义的精准时段划分
+  let timePrefix = '';
+  // 晚上 23点到24点，或者 凌晨 0点到2点
+  if (hour >= 23 || hour < 2) timePrefix = '深夜'; 
+  // 凌晨 2点到5点
+  else if (hour >= 2 && hour < 5) timePrefix = '凌晨'; 
+  // 早上 5点到7点
+  else if (hour >= 5 && hour < 7) timePrefix = '清晨'; 
+  // 上午 7点到11点
+  else if (hour >= 7 && hour < 11) timePrefix = '上午'; 
+  // 中午 11点到13点
+  else if (hour >= 11 && hour < 13) timePrefix = '中午'; 
+  // 下午 13点到18点
+  else if (hour >= 13 && hour < 18) timePrefix = '下午'; 
+  // 傍晚 18点到20点
+  else if (hour >= 18 && hour < 20) timePrefix = '傍晚'; 
+  // 剩下的就是晚上 20点到23点
+  else timePrefix = '夜间';
+
+  // 3. 定义运动的中文名称
+  let typeStr = '';
+  switch (type) {
+    case 'Run': typeStr = '跑步'; break;
+    case 'Ride': typeStr = '骑行'; break;
+    case 'Swim': typeStr = '游泳'; break;
+    case 'Hike':
+    case 'Walk': typeStr = '行走'; break;
+    default: typeStr = '运动';
+  }
+
+  // 4. 判断原名称是否是 Strava 的“系统流水线名字”
+  const isDefaultName =
+    /^(晨间|上午|午间|午后|下午|傍晚|晚间|夜间|凌晨|清晨|Morning|Afternoon|Evening|Night|Lunch)/.test(name) &&
+    /(跑步|骑行|行走|徒步|游泳|运动|Run|Ride|Walk|Swim|Hike)$/.test(name) &&
+    name.length <= 15;
+
+  // 如果是系统默认的没营养的名字，就换成咱们自己精准定义的名字
+  if (isDefaultName || name === 'Run' || name === 'Ride') {
+    return `${timePrefix}${typeStr}`;
+  }
+
+  // 如果是你自己手动改过的特殊名字（比如“千岛湖骑行”），就原样保留
+  return name;
 };
