@@ -437,34 +437,6 @@ const sortDateFunc = (a: Activity, b: Activity) => {
 };
 const sortDateFuncReverse = (a: Activity, b: Activity) => sortDateFunc(b, a);
 
-export {
-  titleForShow,
-  formatPace,
-  formatSpeedOrPace,
-  scrollToMap,
-  locationForRun,
-  intComma,
-  pathForRun,
-  geoJsonForRuns,
-  geoJsonForMap,
-  titleForRun,
-  typeForRun,
-  titleForType,
-  filterYearRuns,
-  filterCityRuns,
-  filterTitleRuns,
-  filterAndSortRuns,
-  sortDateFunc,
-  sortDateFuncReverse,
-  getBoundsForGeoData,
-  filterTypeRuns,
-  colorFromType,
-  formatRunTime,
-  convertMovingTime2Sec,
-  formatRunName,
-  getHeartRateColor,
-};
-
 const getHeartRateColor = (bpm: number): string => {
   if (bpm < 100) return '#e0e0e0'; // 亮银灰 (热身/拉伸/日常行走)
   if (bpm < 115) return '#81d4fa'; // 亮天蓝 (Zone 1: 轻松恢复区)
@@ -522,4 +494,32 @@ const formatRunName = (name: string, startDateLocal: string, type: string): stri
 
   // 如果是你自己手动改过的特殊名字（比如“千岛湖骑行”），就原样保留
   return name;
+};
+
+export {
+  titleForShow,
+  formatPace,
+  formatSpeedOrPace,
+  scrollToMap,
+  locationForRun,
+  intComma,
+  pathForRun,
+  geoJsonForRuns,
+  geoJsonForMap,
+  titleForRun,
+  typeForRun,
+  titleForType,
+  filterYearRuns,
+  filterCityRuns,
+  filterTitleRuns,
+  filterAndSortRuns,
+  sortDateFunc,
+  sortDateFuncReverse,
+  getBoundsForGeoData,
+  filterTypeRuns,
+  colorFromType,
+  formatRunTime,
+  convertMovingTime2Sec,
+  formatRunName,
+  getHeartRateColor,
 };
