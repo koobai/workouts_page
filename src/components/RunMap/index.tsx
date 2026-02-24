@@ -46,7 +46,7 @@ const RunMap = ({
   const { countries, provinces } = useActivities();
   const mapRef = useRef<MapRef>();
   const [lights, setLights] = useState(PRIVACY_MODE ? false : LIGHTS_ON);
-  const keepWhenLightsOff = ['runs2']
+  const keepWhenLightsOff = ['runs2', 'runs2-hover-area']
   function switchLayerVisibility(map: MapInstance, lights: boolean) {
     const styleJson = map.getStyle();
     styleJson.layers.forEach(it => {
@@ -201,8 +201,8 @@ const RunMap = ({
           return;
         }
 
-        if (e.features && e.features.length > 0) {
-          const validRuns = e.features.filter(
+        if (hoverInfo && hoverInfo.features && hoverInfo.features.length > 0) {
+          const validRuns = hoverInfo.features.filter(
             (f) => f.properties && f.properties.start_date_local && (f.properties.run_id || f.properties.id)
           );
           
@@ -215,7 +215,7 @@ const RunMap = ({
             const targetRun = sortedFeatures[sortedFeatures.length - 1]; 
             
             const runId = targetRun.properties.run_id || targetRun.properties.id;
-            window.location.hash = `#run_${runId}`;
+            window.location.hash = `run_${runId}`;
           }
         }
       }}
