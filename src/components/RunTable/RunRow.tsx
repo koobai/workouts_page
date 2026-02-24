@@ -18,7 +18,7 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
     paceUI = (
       <span>
         {parts[0]}
-        <span style={{ fontSize: '0.75em', marginLeft: '3px', opacity: 0.85 }}>
+        <span className={styles.paceUnit}>
           {parts[1]}
         </span>
       </span>

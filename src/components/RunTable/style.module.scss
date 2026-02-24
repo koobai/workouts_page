@@ -60,7 +60,11 @@
   font-size: 0.85rem;
   text-align: right !important;
 }
-
+.paceUnit {
+  font-size: 0.75em;
+  margin-left: 3px;
+  opacity: 0.85;
+}
  // 页面宽度小于900样式
  @media (max-width:700px){
   .runTable {
