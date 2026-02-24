@@ -192,7 +192,7 @@ const RunMap = ({
       mapStyle="mapbox://styles/mapbox/dark-v10"
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
-      interactiveLayerIds={['runs2']} 
+      interactiveLayerIds={['runs2-hover-area']}
       onMouseMove={(e) => {          
         if (e.features && e.features.length > 0) {
           setHoverInfo({
@@ -244,6 +244,14 @@ const RunMap = ({
             'line-cap': 'round',
           }}
         />
+        <Layer
+          id="runs2-hover-area"
+          type="line"
+          paint={{
+            'line-width': 20, 
+            'line-opacity': 0
+          }}
+        />
       </Source>
       {isSingleRun && (
         <RunMarker
@@ -258,7 +266,7 @@ const RunMap = ({
       {!PRIVACY_MODE && <LightsControl setLights={setLights} lights={lights}/>}
       <NavigationControl showCompass={false} position={'bottom-right'} style={{opacity: 0.3}}/>
 
-      {hoverInfo && hoverInfo.features.length > 0 && (
+      {hoverInfo && hoverInfo.features && hoverInfo.features.length > 0 && (
         <Popup
           longitude={hoverInfo.longitude}
           latitude={hoverInfo.latitude}
@@ -273,7 +281,6 @@ const RunMap = ({
             {hoverInfo.features.length === 1 ? (
               <>
                 <div className={styles.singleTitle}>
-                  {/* 颜色是动态读取的，所以只能保留内联 style */}
                   <span className={styles.dot} style={{ color: hoverInfo.features[0].properties.color }}>●</span>
                   {hoverInfo.features[0].properties.name}
                 </div>
@@ -282,26 +289,39 @@ const RunMap = ({
                 </div>
               </>
             ) : (
-              /* 有多条重叠路线时：展示路段总结 */
-              <>
-                <div className={styles.multiHeader}>
-                  📍 此路段重叠了 {hoverInfo.features.length} 次记录
-                </div>
-                {/* 截取前 3 条显示 */}
-                {hoverInfo.features.slice(0, 3).map((f, i) => (
-                  <div key={i} className={styles.multiItem}>
-                    <span className={styles.dot} style={{ color: f.properties.color }}>●</span>
-                    {f.properties.name}{' '}
-                    <span className={styles.subText}>({(f.properties.distance / 1000).toFixed(1)}KM)</span>
-                  </div>
-                ))}
-                {/* 如果超过 3 条，显示省略号 */}
-                {hoverInfo.features.length > 3 && (
-                  <div className={styles.ellipsis}>
-                    ... 及其他 {hoverInfo.features.length - 3} 次记录
-                  </div>
-                )}
-              </>
+              /* 有多条重叠路线时 */
+              (() => {
+                const sortedFeatures = [...hoverInfo.features].sort((a, b) => 
+                  new Date(b.properties.start_date_local.replace(' ', 'T')).getTime() - 
+                  new Date(a.properties.start_date_local.replace(' ', 'T')).getTime()
+                );
+                
+                const latestRun = sortedFeatures[0]; // 最近一次
+                const earliestRun = sortedFeatures[sortedFeatures.length - 1]; // 第一次
+                const totalOverlappedDistance = sortedFeatures.reduce((sum, f) => sum + f.properties.distance, 0) / 1000;
+
+                return (
+                  <>
+                    <div className={styles.multiHeader}>
+                      📍 熟悉的轨迹：经过 {hoverInfo.features.length} 次
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div className={styles.subText}>
+                        🗓️ 首次涉足：{earliestRun.properties.start_date_local.slice(0, 10)}
+                      </div>
+                      <div className={styles.subText}>
+                        🔥 最近探访：{latestRun.properties.start_date_local.slice(0, 10)}
+                      </div>
+                      <div className={styles.subText}>
+                        🚴 最近一次：<span className={styles.dot} style={{ color: latestRun.properties.color }}>●</span> {latestRun.properties.name} ({(latestRun.properties.distance / 1000).toFixed(1)} KM)
+                      </div>
+                      <div className={styles.subText} style={{ borderTop: '1px dashed #555', paddingTop: '8px', marginTop: '4px' }}>
+                        🌍 覆盖路线总里程：{totalOverlappedDistance.toFixed(1)} KM
+                      </div>
+                    </div>
+                  </>
+                );
+              })()
             )}
           </div>
         </Popup>

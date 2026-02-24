@@ -83,34 +83,35 @@
 .tooltipContainer {
   background: rgba(30, 30, 30, 0.9);
   color: #eee;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 14px 16px; 
+  border-radius: 16px; 
   font-size: 13px;
   border: 1px solid #444;
-  min-width: 160px;
-  pointer-events: none; /* 让鼠标穿透卡片，避免遮挡地图交互 */
+  min-width: 180px;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
 }
 
-.singleTitle {
-  font-weight: bold;
-  margin-bottom: 4px;
+.singleTitle { 
+  font-weight: bold; 
+  margin-bottom: 6px; 
+  font-size: 14px; 
 }
-
-.dot {
-  margin-right: 6px;
+.dot { 
+  margin-right: 6px; 
 }
-
-.subText {
-  color: #aaa;
-  font-size: 11px;
+.subText { 
+  color: #aaa; 
+  font-size: 12px; 
+  margin-bottom: 4px; 
 }
-
-.multiHeader {
-  border-bottom: 1px solid #555;
-  padding-bottom: 6px;
-  margin-bottom: 6px;
-  font-weight: bold;
-  color: #fff;
+.multiHeader { 
+  border-bottom: 1px solid #555; 
+  padding-bottom: 8px; 
+  margin-bottom: 8px; 
+  font-weight: bold; 
+  color: #fff; 
+  font-size: 14px; 
 }
 
 .multiItem {
@@ -123,6 +124,14 @@
   font-size: 11px;
   margin-top: 6px;
   text-align: center;
+}
+.mapboxgl-popup-content {
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.mapboxgl-popup-tip {
+  display: none !important;
 }
  // 页面宽度小于900样式
  @media (max-width:900px){

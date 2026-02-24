@@ -203,9 +203,9 @@ const geoJsonForRuns = (runs: Activity[]): FeatureCollection<LineString> => ({
       },
       properties: {
         'color': colorFromType(run.type),
-        'name': run.name,                           // 👈 新增：运动名称
-        'distance': run.distance,                   // 👈 新增：运动距离
-        'start_date_local': run.start_date_local,   // 👈 新增：运动时间
+        'name': formatRunName(run.name, run.start_date_local, run.type),
+        'distance': run.distance,
+        'start_date_local': run.start_date_local,
       },
       name: run.name,
     };
