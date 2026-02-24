@@ -37,7 +37,6 @@ ACTIVITY_KEYS = [
     "average_heartrate",
     "average_speed",
     "source",
-    "calories",
 ]
 
 
@@ -58,7 +57,6 @@ class Activity(Base):
     average_speed = Column(Float)
     streak = None
     source = Column(String)
-    calories = Column(Float)
 
     def to_dict(self):
         out = {}
@@ -124,7 +122,6 @@ def update_or_create_activity(session, run_activity):
                     run_activity.map and run_activity.map.summary_polyline or ""
                 ),
                 source=source,
-                calories=getattr(run_activity, 'calories', 0.0),
             )
             session.add(activity)
             created = True
@@ -140,7 +137,6 @@ def update_or_create_activity(session, run_activity):
                 run_activity.map and run_activity.map.summary_polyline or ""
             )
             activity.source = source
-            activity.calories = getattr(run_activity, 'calories', 0.0)
     except Exception as e:
         print(f"something wrong with {run_activity.id}")
         print(str(e))
