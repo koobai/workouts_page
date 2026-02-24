@@ -106,7 +106,7 @@
 
 .subText { 
   color: #aaa; 
-  font-size: 0.9rem; 
+  font-size: 0.85rem; 
 }
 
 /* --- 多条重叠路线时的排版 --- */
@@ -118,19 +118,19 @@
 
 .multiStat {
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #fff;
 }
 
 .multiDate {
   color: #aaa; 
-  font-size: 0.9rem; 
+  font-size: 0.85rem; 
   margin-top: 4px;
 }
 
 .multiActivity {
   color: #aaa; 
-  font-size: 12px; 
+  font-size: 0.85px; 
 }
  // 页面宽度小于900样式
  @media (max-width:900px){
