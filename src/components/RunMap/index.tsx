@@ -306,7 +306,7 @@ const RunMap = ({
                   new Date(a.properties.start_date_local.replace(' ', 'T')).getTime()
                 );
                 
-                const latestRun = sortedFeatures[0]; // 最近一次
+                const earliestRun = sortedFeatures[sortedFeatures.length - 1];
                 const totalOverlappedDistance = sortedFeatures.reduce((sum, f) => sum + f.properties.distance, 0) / 1000;
 
                 return (
