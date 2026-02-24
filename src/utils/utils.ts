@@ -462,10 +462,12 @@ export {
 };
 
 const getHeartRateColor = (bpm: number): string => {
-  if (bpm < 120) return '#78909c'; // 莫兰迪蓝灰 (轻松燃脂，散步/徒步)
-  if (bpm < 145) return '#66bb6a'; // 清新绿 (有氧耐力，轻松跑/骑行)
-  if (bpm < 165) return '#ffa726'; // 活力橙 (乳酸阈值，有点累的强度)
-  return '#ef5350';                // 警戒红 (无氧极限，冲刺阶段)
+  if (bpm < 100) return '#e0e0e0'; // 亮银灰 (热身/拉伸/日常行走)
+  if (bpm < 115) return '#81d4fa'; // 亮天蓝 (Zone 1: 轻松恢复区)
+  if (bpm < 130) return '#a5d6a7'; // 清新浅绿 (Zone 2: 黄金燃脂区)
+  if (bpm < 145) return '#ffd54f'; // 明亮黄 (Zone 3: 有氧进阶区，微微气喘)
+  if (bpm < 160) return '#ffb74d'; // 亮橙色 (Zone 4: 乳酸阈值，比较痛苦)
+  return '#ff8a80';                // 珊瑚红 (Zone 5: 无氧极限，冲刺)
 };
 
 const formatRunName = (name: string, startDateLocal: string, type: string): string => {

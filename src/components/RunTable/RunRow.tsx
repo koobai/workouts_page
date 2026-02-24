@@ -49,7 +49,14 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
       <td>{distance}</td>
       <td>{paceUI}</td>
       <td style={{ color: heartRate ? getHeartRateColor(heartRate) : 'inherit' }}>
-        {heartRate ? heartRate.toFixed(0) : '-'}
+        {heartRate ? (
+          <>
+            {heartRate.toFixed(0)}
+            {heartRate >= 130 && (
+              <span className={styles.heartRateEmoji}>🔥</span>
+            )}
+          </>
+        ) : '-'}
       </td>
       <td>{runTime}</td>
       <td className={styles.runDate}>{run.start_date_local}</td>
