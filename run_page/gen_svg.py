@@ -242,13 +242,14 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    # === 极客魔改布局开始（真·内容锚定版） ===
+    # === 极客魔改布局开始（高精度对齐版） ===
     
+    # 恢复官方高度逻辑，确保底部 Athlete 等统计信息不重叠
     p.drawer_type = "plain" if is_circular else "title"
     if args.type == "github":
         p.height = 55 + p.years.count() * 43
 
-    # 定义黑客函数：基于真实代码结构，精准替换内容样式！
+    # 定义黑客函数：支持浮点坐标，物理对齐 Y 轴
     def hack_svg_style(filepath):
         try:
             with open(filepath, "r", encoding="utf-8") as f:
@@ -256,41 +257,48 @@ def main():
             
             import re
             
-            # 🎯 绝杀 1：精准捕捉并修改大标题
+            # 🎯 绝杀 1：标题处理 (内容锚定)
             target_title = args.title if args.title else ""
             if target_title:
                 pattern_title = r'<text[^>]*>(\s*' + re.escape(target_title) + r'\s*)</text>'
+                # 重新构建标题：居中
                 replacement_title = r'<text x="50%" y="20" fill="#dfdfdf" text-anchor="middle" style="font-size: 6px; font-family: JetBrainsMono, -apple-system, sans-serif; font-weight: 700;">\1</text>'
                 content = re.sub(pattern_title, replacement_title, content)
             
-            # 🎯 绝杀 2：精准捕捉并修改年份
+            # 🎯 绝杀 2：年份处理 (内容锚定 + 浮点坐标支持)
+            # 匹配 2023, 2024, 2025...
             def compress_year(match):
-                tag_attributes = match.group(1) 
-                year_text = match.group(2)      
-                tag_attributes = re.sub(r'style="[^"]*"', '', tag_attributes)
-                return f'<text {tag_attributes} style="font-size: 5px; font-family: JetBrainsMono, -apple-system, sans-serif;">{year_text}</text>'
+                tag_attrs = match.group(1)
+                year_text = match.group(2)
+                tag_attrs = re.sub(r'style="[^"]*"', '', tag_attrs) # 剥离旧样式
+                return f'<text {tag_attrs} style="font-size: 5px; font-family: JetBrainsMono, -apple-system, sans-serif;">{year_text}</text>'
+            
             content = re.sub(r'<text([^>]*)>(\s*20\d{2}\s*)</text>', compress_year, content)
 
-            # 🎯 绝杀 3：将右侧的公里数上移，与年份硬核对齐！
-            # 正则特意只匹配 "数字+km" (如 22.7 km)，避免误伤底部统计里的 "Total: 2284 km"
+            # 🎯 绝杀 3：公里数对齐 (支持浮点坐标，修复 5px 偏移)
             def align_km(match):
-                tag_attributes = match.group(1)
+                tag_attrs = match.group(1)
                 km_text = match.group(2)
                 
-                # 找到 Y 坐标，并暴力减去 14 (抵消原作者硬编码的下移量)
+                # 修复 Y 坐标：核心在于识别 [\d.]+ 捕获 77.5 这种浮点数
                 def fix_y(m):
-                    new_y = int(m.group(1)) - 14
-                    return f'y="{new_y}"'
-                    
-                tag_attributes = re.sub(r'y="(\d+)"', fix_y, tag_attributes)
+                    try:
+                        old_y = float(m.group(1))
+                        new_y = old_y - 5.0 # 向上平移 5px，对齐年份
+                        return f'y="{new_y}"'
+                    except:
+                        return m.group(0)
                 
-                # 顺手把公里数的字号也改小，保持精致感
-                tag_attributes = re.sub(r'style="[^"]*"', '', tag_attributes)
-                return f'<text{tag_attributes} style="font-size: 5px; font-family: JetBrainsMono, -apple-system, sans-serif;">{km_text}</text>'
-                
+                # 替换 Y 坐标
+                tag_attrs = re.sub(r'y="([\d.]+)"', fix_y, tag_attrs)
+                # 移除旧 style
+                tag_attrs = re.sub(r'style="[^"]*"', '', tag_attrs)
+                return f'<text{tag_attrs} style="font-size: 4px; font-family: JetBrainsMono, -apple-system, sans-serif;">{km_text}</text>'
+            
+            # 匹配类似 "22.7 km" 或 "646.7 km" 的文本块
             content = re.sub(r'<text([^>]*)>\s*([\d,]+(?:\.\d+)?\s*km)\s*</text>', align_km, content)
             
-            # 全局字体兜底注入
+            # 注入全局 CSS 确保字体
             css_inject = """
             <style>
             text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
@@ -301,10 +309,10 @@ def main():
             
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
-        except Exception as e:
+        except Exception:
             pass
 
-    # 开始作画并触发魔改
+    # 开始作画
     if is_circular:
         years = p.years.all()[:]
         for y in years:
