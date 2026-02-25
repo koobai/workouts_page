@@ -42,7 +42,10 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
       className={`${styles.runRow} ${runIndex === elementIndex ? styles.selected : ''}`}
       key={run.start_date_local}
       onClick={handleClick}
-      style={{color: colorFromType(type)}}
+      style={{
+        color: colorFromType(type),
+        animationDelay: `${Math.min(elementIndex * 0.05, 1.2)}s`
+      }}
     >
       <td>{formatRunName(run.name, run.start_date_local, run.type)}</td>
       <td>
