@@ -242,11 +242,16 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    
     p.drawer_type = "plain" if (is_circular or args.type == "github") else "title"
     
     if args.type == "github":
-        p.height = p.years.count() * 43 + 15  # 15px 是完美的收口间距
+        p.height = p.years.count() * 43 + 15
+        
+        year_dict = {}
+        for t in tracks:
+            y = t.start_time.year if hasattr(t, 'start_time') else getattr(t, 'year', 2026)
+            year_dict[y] = year_dict.get(y, 0) + getattr(t, 'length', 0)
+        p.total_length_year_dict = year_dict
 
     def hack_svg_style(filepath):
         try:
@@ -262,6 +267,7 @@ def main():
         except Exception:
             pass
 
+    # 开始作画并触发魔改
     if is_circular:
         years = p.years.all()[:]
         for y in years:
