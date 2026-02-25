@@ -242,27 +242,38 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    # === 极客魔改布局开始（安全回退版） ===
+    # === 极客魔改布局开始（双重锁定版） ===
     
-    # 1. 恢复官方最稳定的高度计算，坚决不砍高度，解决底部统计数据被覆盖的惨案！
+    # 1. 恢复官方高度计算，保证数据安全
     p.drawer_type = "plain" if is_circular else "title"
     if args.type == "github":
         p.height = 55 + p.years.count() * 43
 
-    # 2. 极其温和的样式注入函数
+    # 2. 定义黑客函数：正则强改 + CSS 属性锁定
     def hack_svg_style(filepath):
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
             
-            # 魔法 1：放弃极其容易引发错位的“强制居中”，保留极客风格的左对齐，但把巨大的字号缩小！
-            content = content.replace('font-size="30"', 'font-size="18"')
-            content = content.replace('font-size="24"', 'font-size="14"')
+            import re
             
-            # 魔法 2：纯粹的字体注入，不碰任何坐标系和边距
+            # 🔨 手段一：宽容正则替换 (不管你是单引号还是双引号，不管有没有空格，统统抓出来改掉)
+            # 把所有 30号 大标题改成 18号
+            content = re.sub(r'font-size\s*=\s*["\']30["\']', 'font-size="18"', content)
+            # 把所有 24号 年份改成 14号
+            content = re.sub(r'font-size\s*=\s*["\']24["\']', 'font-size="14"', content)
+            
+            # 🛡️ 手段二：CSS 属性选择器强行覆盖 (如果上面的正则漏了，这个 CSS 会根据属性值抓人，强制执行)
             css_inject = """
             <style>
-            text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
+                /* 全局字体 */
+                text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
+                
+                /* 核武器：专门针对那些属性写着 font-size="30" 的顽固分子，强制压到 18px */
+                text[font-size="30"] { font-size: 18px !important; }
+                
+                /* 核武器：专门针对那些属性写着 font-size="24" 的年份，强制压到 14px */
+                text[font-size="24"] { font-size: 14px !important; }
             </style>
             </svg>
             """
