@@ -242,63 +242,67 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    # === 极客魔改布局开始（高精度对齐版） ===
+    # === 极客魔极布局开始（像素级精控版） ===
     
-    # 恢复官方高度逻辑，确保底部 Athlete 等统计信息不重叠
     p.drawer_type = "plain" if is_circular else "title"
+    
     if args.type == "github":
-        p.height = 55 + p.years.count() * 43
+        p.height = 35 + p.years.count() * 32 
 
-    # 定义黑客函数：支持浮点坐标，物理对齐 Y 轴
     def hack_svg_style(filepath):
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
-            
             import re
-            
-            # 🎯 绝杀 1：标题处理 (内容锚定)
+
+            # 🎯 绝杀 1：标题处理 (6px + 居中)
             target_title = args.title if args.title else ""
             if target_title:
                 pattern_title = r'<text[^>]*>(\s*' + re.escape(target_title) + r'\s*)</text>'
-                # 重新构建标题：居中
-                replacement_title = r'<text x="50%" y="20" fill="#dfdfdf" text-anchor="middle" style="font-size: 6px; font-family: JetBrainsMono, -apple-system, sans-serif; font-weight: 700;">\1</text>'
+                # 标题压到 6px，向上提一点到 y=12
+                replacement_title = r'<text x="50%" y="12" fill="#dfdfdf" text-anchor="middle" style="font-size: 6px; font-family: JetBrainsMono, -apple-system, sans-serif; font-weight: 700;">\1</text>'
                 content = re.sub(pattern_title, replacement_title, content)
-            
-            # 🎯 绝杀 2：年份处理 (内容锚定 + 浮点坐标支持)
-            # 匹配 2023, 2024, 2025...
-            def compress_year(match):
-                tag_attrs = match.group(1)
-                year_text = match.group(2)
-                tag_attrs = re.sub(r'style="[^"]*"', '', tag_attrs) # 剥离旧样式
-                return f'<text {tag_attrs} style="font-size: 5px; font-family: JetBrainsMono, -apple-system, sans-serif;">{year_text}</text>'
-            
-            content = re.sub(r'<text([^>]*)>(\s*20\d{2}\s*)</text>', compress_year, content)
 
-            # 🎯 绝杀 3：公里数对齐 (支持浮点坐标，修复 5px 偏移)
-            def align_km(match):
-                tag_attrs = match.group(1)
-                km_text = match.group(2)
-                
-                # 修复 Y 坐标：核心在于识别 [\d.]+ 捕获 77.5 这种浮点数
-                def fix_y(m):
-                    try:
-                        old_y = float(m.group(1))
-                        new_y = old_y - 5.0 # 向上平移 5px，对齐年份
-                        return f'y="{new_y}"'
-                    except:
-                        return m.group(0)
-                
-                # 替换 Y 坐标
-                tag_attrs = re.sub(r'y="([\d.]+)"', fix_y, tag_attrs)
-                # 移除旧 style
-                tag_attrs = re.sub(r'style="[^"]*"', '', tag_attrs)
-                return f'<text{tag_attrs} style="font-size: 4px; font-family: JetBrainsMono, -apple-system, sans-serif;">{km_text}</text>'
-            
-            # 匹配类似 "22.7 km" 或 "646.7 km" 的文本块
-            content = re.sub(r'<text([^>]*)>\s*([\d,]+(?:\.\d+)?\s*km)\s*</text>', align_km, content)
-            
-            # 注入全局 CSS 确保字体
+            # 🎯 绝杀 2 & 3：年份 (5px) 与 公里数 (4px) 垂直压缩并同行对齐
+            def compress_and_align(match):
+                full_tag = match.group(0)
+                try:
+                    # 提取原始 y 坐标
+                    old_y = float(re.search(r'y="([\d.]+)"', full_tag).group(1))
+                    
+                    # 1. 识别行索引 (基于原始 43px 步长)
+                    base_y = 30 
+                    row_index = int((old_y - base_y) / 43) if old_y > base_y else 0
+                    y_in_row = (old_y - base_y) % 43
+                    
+                    # 2. 压缩行距：新 y 坐标基于 32px 步长
+                    new_y = base_y + (row_index * 32) + y_in_row
+                    
+                    # 3. 针对性修改字号和对齐
+                    # 处理年份 (识别内容为 20xx)
+                    if re.search(r'>\s*20\d{2}\s*<', full_tag):
+                        full_tag = re.sub(r'style="[^"]*"', 'style="font-size: 5px; font-family: JetBrainsMono;"', full_tag)
+                        new_tag = re.sub(r'y="[\d.]+"', f'y="{new_y:.1f}"', full_tag)
+                        return new_tag
+                    
+                    # 处理公里数 (识别内容为 xx km)
+                    elif ' km' in full_tag:
+                        # 重点：公里数原本比年份低 5px，我们把它减掉实现对齐，并设为 4px
+                        aligned_y = new_y - 5.0
+                        full_tag = re.sub(r'style="[^"]*"', 'style="font-size: 4px; font-family: JetBrainsMono;"', full_tag)
+                        new_tag = re.sub(r'y="[\d.]+"', f'y="{aligned_y:.1f}"', full_tag)
+                        return new_tag
+                    
+                    # 处理热力图方块和月份 (y 轴同步平移)
+                    else:
+                        return re.sub(r'y="[\d.]+"', f'y="{new_y:.1f}"', full_tag)
+                except:
+                    return full_tag
+
+            # 执行全量坐标压缩
+            content = re.sub(r'<(text|rect)[^>]*y="[\d.]+"[^>]*>.*?</\1>|<(text|rect)[^>]*y="[\d.]+"[^/>]*/?>', compress_and_align, content, flags=re.DOTALL)
+
+            # 注入全局 CSS
             css_inject = """
             <style>
             text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
