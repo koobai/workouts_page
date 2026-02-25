@@ -664,7 +664,7 @@ a.mapboxgl-ctrl-logo.mapboxgl-compact {
 }
 
 
-@media (max-width:900px){
+@media (max-width:768px){
   .mapboxgl-ctrl-group{
    display: none;
  }
