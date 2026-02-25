@@ -11,7 +11,7 @@ interface ISiteMetadataResult {
 }
 
 const data: ISiteMetadataResult = {
-  siteTitle: '骑行 - 空白Koobai',
+  siteTitle: '动起来 - 空白Koobai',
   siteUrl: 'https://sport.koobai.com',
   logo: 'https://img.koobai.com/koobai.webp',
   description: '越来越肥胖的身体，导致双脚都扛不住了，没走几下就累；体检数据也一年比一年难看，是时候该动起来了。',
@@ -38,7 +38,7 @@ const data: ISiteMetadataResult = {
       icon: 'ruanj'
     },
     {
-      name: '骑行',
+      name: '动起来',
       url: '/',
       icon: 'qixing'
     },
