@@ -36,7 +36,8 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
     setRunIndex(elementIndex);
     locateActivity([run.run_id]);
   };
-
+  const datePart = run.start_date_local.slice(5, 10); // 提取 "12-04"
+  const timePart = run.start_date_local.slice(11, 16); // 提取 "10:40"
   return (
     <tr
       className={`${styles.runRow} ${runIndex === elementIndex ? styles.selected : ''}`}
@@ -68,7 +69,10 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
         ) : '-'}
       </td>
       <td>{runTime}</td>
-      <td className={styles.runDate}>{run.start_date_local}</td>
+      <td className={styles.runDate}>
+        <span className={styles.datePart}>{datePart}</span>
+        <span className={styles.timePart}>{timePart}</span>
+      </td>
     </tr>
   );
 };
