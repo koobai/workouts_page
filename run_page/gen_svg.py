@@ -242,38 +242,22 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    # === 极客魔改布局开始（双重锁定版） ===
+    # === 回归官方纯净版：只注入极客字体 ===
     
-    # 1. 恢复官方高度计算，保证数据安全
+    # 保留官方原始的布局计算逻辑
     p.drawer_type = "plain" if is_circular else "title"
     if args.type == "github":
         p.height = 55 + p.years.count() * 43
 
-    # 2. 定义黑客函数：正则强改 + CSS 属性锁定
-    def hack_svg_style(filepath):
+    # 只做一个最安全的操作：在图片末尾追加你网站的专属字体
+    def inject_font(filepath):
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
             
-            import re
-            
-            # 🔨 手段一：宽容正则替换 (不管你是单引号还是双引号，不管有没有空格，统统抓出来改掉)
-            # 把所有 30号 大标题改成 18号
-            content = re.sub(r'font-size\s*=\s*["\']30["\']', 'font-size="18"', content)
-            # 把所有 24号 年份改成 14号
-            content = re.sub(r'font-size\s*=\s*["\']24["\']', 'font-size="14"', content)
-            
-            # 🛡️ 手段二：CSS 属性选择器强行覆盖 (如果上面的正则漏了，这个 CSS 会根据属性值抓人，强制执行)
             css_inject = """
             <style>
-                /* 全局字体 */
-                text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
-                
-                /* 核武器：专门针对那些属性写着 font-size="30" 的顽固分子，强制压到 18px */
-                text[font-size="30"] { font-size: 18px !important; }
-                
-                /* 核武器：专门针对那些属性写着 font-size="24" 的年份，强制压到 14px */
-                text[font-size="24"] { font-size: 14px !important; }
+            text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
             </style>
             </svg>
             """
@@ -284,7 +268,7 @@ def main():
         except Exception:
             pass
 
-    # 开始作画并触发魔改
+    # 开始作画并触发字体注入
     if is_circular:
         years = p.years.all()[:]
         for y in years:
@@ -292,12 +276,10 @@ def main():
             p.set_tracks(tracks)
             out_path = os.path.join("assets", f"year_{str(y)}.svg")
             p.draw(drawers[args.type], out_path)
-            hack_svg_style(out_path)
+            inject_font(out_path)
     else:
         p.draw(drawers[args.type], args.output)
-        hack_svg_style(args.output)
-        
-    # === 极客魔改布局结束 ===
+        inject_font(args.output)
 
 
 if __name__ == "__main__":

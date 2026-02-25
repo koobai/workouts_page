@@ -175,8 +175,8 @@ jobs:
       - name: Make svg GitHub profile
         if: env.RUN_TYPE != 'pass'
         run: |
-          python run_page/gen_svg.py --from-db --title "${{ env.TITLE }}" --type github --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --background-color "#605D5A" --text-color "#dfdfdf" --track-color "#00FF00" --special-color "#FF00FF" --special-color2 "#FF0033" --track-color2 "#FF0033" --output assets/github.svg --use-localtime --min-distance 0.5
-          python run_page/gen_svg.py --from-db --title "${{ env.TITLE_GRID }}" --type grid --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --background-color "#605D5A" --text-color "#dfdfdf" --track-color "#00FF00" --special-color "#FF00FF" --special-color2 "#FF0033" --track-color2 "#FF0033" --output assets/grid.svg --use-localtime --min-distance "${{ env.MIN_GRID_DISTANCE }}"
+          python run_page/gen_svg.py --from-db --title "${{ env.TITLE }}" --type github --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --background-color "#605D5A" --text-color "#dfdfdf" --track-color "#00FF00" --special-color "#FF9D00" --special-color2 "#FF0033" --track-color2 "#FF0033" --output assets/github.svg --use-localtime --min-distance 0.5
+          python run_page/gen_svg.py --from-db --title "${{ env.TITLE_GRID }}" --type grid --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --background-color "#605D5A" --text-color "#dfdfdf" --track-color "#00FF00" --special-color "#FF9D00" --special-color2 "#FF0033" --track-color2 "#FF0033" --output assets/grid.svg --use-localtime --min-distance "${{ env.MIN_GRID_DISTANCE }}"
 
       - name: Push new runs
         if: env.SAVE_DATA_IN_GITHUB_CACHE != 'true'
