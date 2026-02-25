@@ -11,12 +11,12 @@
 .buttons {
   position: absolute;
   left: 0;
-  bottom: 8px;
+  bottom: 15px;
   right: 0;
   z-index: 100;
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 15px;
   padding-left: 0 !important;
 }
 
@@ -24,7 +24,7 @@
   display: inline-block;
   position: relative;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   text-align: center;
   color: #dfdfdf;
   font-family: $global-font-family;
