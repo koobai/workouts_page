@@ -93,12 +93,12 @@ const convertMovingTime2Sec = (moving_time: string): number => {
 
 const formatRunTime = (moving_time: string): string => {
   const totalSeconds = convertMovingTime2Sec(moving_time);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  const minutes = (totalSeconds - seconds) / 60;
-  if (minutes === 0) {
-    return seconds + 's';
-  }
-  return minutes + 'min';
+  const paddedMinutes = minutes.toString().padStart(2, '0');
+  const paddedSeconds = seconds.toString().padStart(2, '0');
+  return `${hours}:${paddedMinutes}:${paddedSeconds}`;
 };
 
 // for scroll to the map

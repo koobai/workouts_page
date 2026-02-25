@@ -22,8 +22,8 @@ env:
   RUN_TYPE: strava # support strava/nike/garmin/garmin_cn/garmin_sync_cn_global/keep/only_gpx/only_fit/nike_to_strava/strava_to_garmin/strava_to_garmin_cn/garmin_to_strava/garmin_to_strava_cn/codoon, Please change the 'pass' it to your own
   ATHLETE: Koobai
   TITLE: Workouts
-  MIN_GRID_DISTANCE: 5 # change min distance here
-  TITLE_GRID: Over 5km Workouts # also here
+  MIN_GRID_DISTANCE: 6 # change min distance here
+  TITLE_GRID: Over 6km Workouts # also here
   GITHUB_NAME: koobai  # change to yours
   GITHUB_EMAIL: mekoobai@gmail.com # change to yours
 
@@ -175,10 +175,10 @@ jobs:
       - name: Make svg GitHub profile
         if: env.RUN_TYPE != 'pass'
         run: |
-          python run_page/gen_svg.py --from-db --title "${{ env.TITLE }}" --type github --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github.svg --use-localtime --min-distance 0.5
-          python run_page/gen_svg.py --from-db --title "${{ env.TITLE_GRID }}" --type grid --athlete "${{ env.ATHLETE }}" --output assets/grid.svg --special-color yellow --special-color2 red --special-distance 20 --special-distance2 40 --use-localtime --min-distance "${{ env.MIN_GRID_DISTANCE }}"
-          python run_page/gen_svg.py --from-db --type circular --use-localtime
-          python run_page/gen_svg.py --from-db --year $(date +"%Y")  --language zh_CN --title "$(date +"%Y") Workouts" --type github --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --special-color yellow --special-color2 red --output assets/github_$(date +"%Y").svg --use-localtime --min-distance 0.5
+          python run_page/gen_svg.py --from-db --title "${{ env.TITLE }}" --type github --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --background-color "#605D5A" --text-color "#dfdfdf" --track-color "#00FF00" --special-color "#FF00FF" --special-color2 "#FFA500" --output assets/github.svg --use-localtime --min-distance 0.5
+          python run_page/gen_svg.py --from-db --title "${{ env.TITLE_GRID }}" --type grid --athlete "${{ env.ATHLETE }}" --background-color "#605D5A" --text-color "#dfdfdf" --track-color "#00FF00" --special-color "#FF00FF" --special-color2 "#FFA500" --output assets/grid.svg --special-distance 20 --special-distance2 40 --use-localtime --min-distance "${{ env.MIN_GRID_DISTANCE }}"
+          python run_page/gen_svg.py --from-db --type circular --background-color "#605D5A" --text-color "#dfdfdf" --track-color "#00FF00" --use-localtime
+          python run_page/gen_svg.py --from-db --year $(date +"%Y")  --language zh_CN --title "$(date +"%Y") Workouts" --type github --athlete "${{ env.ATHLETE }}" --special-distance 10 --special-distance2 20 --background-color "#605D5A" --text-color "#dfdfdf" --track-color "#00FF00" --special-color "#FF00FF" --special-color2 "#FFA500" --output assets/github_$(date +"%Y").svg --use-localtime --min-distance 0.5
 
       - name: Push new runs
         if: env.SAVE_DATA_IN_GITHUB_CACHE != 'true'

@@ -209,9 +209,6 @@ const Index = () => {
         )}
       </div>*/}
       <div className='page-background'>
-      <div className="pagetitle">
-      2025 年检查出来二型糖尿病，经过饮食及运动结合，已减重二十多斤。但随着不运动及饮食的不控制，体重开始反弹～今年的目标体重 130-140斤。
-      </div>
       <div className="page-map">
         <RunMap
           title={title}
@@ -222,6 +219,9 @@ const Index = () => {
           thisYear={year}
         />
         </div>
+        <div className="pagetitle">
+      2025 年检查出来二型糖尿病，经过饮食及运动结合，已减重二十多斤。但随着不运动及饮食的不控制，体重开始反弹～今年的目标体重 130-140斤。
+      </div>
         <div className='page-nrong'>
         {year === 'Total' ? (
           <SVGStat />

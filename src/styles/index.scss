@@ -131,12 +131,14 @@ h5 .header-link {
 }
 
 //自定义css
-
 @font-face {
-  font-family: JetBrainsMono;
+  font-family: 'JetBrainsMono';
   font-display: swap;
-  src: url('https://img.koobai.com/fonts/JetBrainsMono-Regular.woff2') format('woff2');
-  unicode-range: U+61-7a,U+41-5a,U+30-39;
+  font-weight: 400;
+  src: local('JetBrains Mono'), 
+       local('JetBrainsMono'), 
+       url('https://img.koobai.com/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  unicode-range: U+0021-00FF; 
 }
 
 .header {
@@ -224,7 +226,7 @@ h5 .header-link {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
  // 页面宽度小于900样式
-@media (max-width:900px){
+@media (max-width:768px){
   body {
     padding: 0 20px 20px 20px;
   }
@@ -250,22 +252,18 @@ h5 .header-link {
   .pagetitle {
     display: none;
   }
-  .page-nrong{
-    margin-top: 350px !important;
-    position: relative;
-    z-index: 2;
-  }
+ 
   .header-menu{
     display: none;
    }
 }
-.page-map{
-  position: absolute;
-  top: 0;
+.page-map {
+  position: sticky; 
+  top: 0; 
   left: 0;
   width: 100vw;
   margin-left: calc(50% - 50vw);
-
+  z-index: 10; 
 }
 .page-map:after {
   content: '';
@@ -280,18 +278,16 @@ h5 .header-link {
 .pagetitle {
   font-size: 1rem;
   line-height: 1.8;
-  margin-bottom: 20px;
   max-width: 620px;
-  margin: auto;
+  margin: 0 auto;
   padding-bottom: 20px;
   text-align: center;
   color: #dfdfdf;
-  margin-top: 500px;
   position: relative;
   z-index: 2;
 }
 .page-nrong{
-  margin-top: 20px;
+  margin-top: 10px;
 }
 //文本选择高亮颜色
 ::selection {

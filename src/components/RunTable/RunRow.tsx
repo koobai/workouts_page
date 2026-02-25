@@ -45,8 +45,12 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
       style={{color: colorFromType(type)}}
     >
       <td>{formatRunName(run.name, run.start_date_local, run.type)}</td>
-      <td>{type}</td>
-      <td>{distance}</td>
+      <td>
+      {distance}
+      <span style={{ fontSize: '0.75em', marginLeft: '3px', opacity: 0.7 }}>
+        km
+      </span>
+    </td>
       <td>{paceUI}</td>
       <td style={{ color: heartRate ? getHeartRateColor(heartRate) : 'inherit' }}>
         {heartRate ? (
