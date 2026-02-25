@@ -242,33 +242,33 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    p.drawer_type = "plain" if (is_circular or args.type == "github") else "title"
-    
+    # === 极客魔改布局开始 ===
+    p.drawer_type = "plain" if is_circular else "title"
     if args.type == "github":
-        p.height = p.years.count() * 43 + 15
-        
-        year_dict = {}
-        for t in tracks:
-            y = None
-            if hasattr(t, 'start_time') and t.start_time is not None:
-                y = t.start_time.year
-            elif hasattr(t, 'year') and t.year is not None:
-                y = t.year
-                
-            if y is not None:
-                year_dict[y] = year_dict.get(y, 0) + getattr(t, 'length', 0)
-                
-        p.total_length_year_dict = year_dict
+        p.height = 55 + p.years.count() * 43
 
     def hack_svg_style(filepath):
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
-            # 暴力替换底层的硬编码字体大小
-            content = content.replace('font-size="30"', 'font-size="18"') # 缩小网格图标题
-            content = content.replace('font-size="24"', 'font-size="12"') # 缩小热力图年份
-            # 注入你网站同款的极客代码字体
-            content = content.replace('</svg>', '<style>text { font-family: JetBrainsMono, -apple-system, sans-serif !important; font-weight: normal !important; }</style></svg>')
+            import re
+            
+            content = re.sub(r'<rect[^>]*width="100%"[^>]*height="100%"[^>]*/>', '', content)
+            content = re.sub(
+                r'<text[^>]*font-size="30"[^>]*>([^<]+)</text>',
+                r'<text x="50%" y="35" font-size="18" text-anchor="middle">\1</text>',
+                content
+            )
+            content = content.replace('font-size="24"', 'font-size="14"')
+            
+            css_inject = """
+            <style>
+            text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
+            </style>
+            </svg>
+            """
+            content = content.replace('</svg>', css_inject)
+            
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
         except Exception:
@@ -282,10 +282,12 @@ def main():
             p.set_tracks(tracks)
             out_path = os.path.join("assets", f"year_{str(y)}.svg")
             p.draw(drawers[args.type], out_path)
-            hack_svg_style(out_path) # 触发注入
+            hack_svg_style(out_path)
     else:
         p.draw(drawers[args.type], args.output)
-        hack_svg_style(args.output) # 触发注入
+        hack_svg_style(args.output)
+        
+    # === 极客魔改布局结束 ===
 
 
 if __name__ == "__main__":
