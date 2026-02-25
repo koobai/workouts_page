@@ -190,24 +190,40 @@ const Index = () => {
       svgStat && svgStat.removeEventListener('click', handleClick);
     };
   }, [year]);
+// --- 👇 完整版数据计算面板 👇 ---
+  // 1. 基础数据
+  const totalDistance = (runs.reduce((acc, run) => acc + (run.distance || 0), 0) / 1000).toFixed(1);
+  const activeDays = new Set(runs.map(r => r.start_date_local.slice(0, 10))).size;
 
+  // 2. 分类里程 (骑行 vs 跑走)
+  const rideDistance = (runs.filter(r => r.type === 'Ride' || r.type === 'VirtualRide').reduce((acc, run) => acc + (run.distance || 0), 0) / 1000).toFixed(1);
+  const hikeRunDistance = (runs.filter(r => r.type === 'Run' || r.type === 'Hike').reduce((acc, run) => acc + (run.distance || 0), 0) / 1000).toFixed(1);
+
+  // 3. 核心算法：计算最长连续运动天数 (Streak)
+  let longestStreak = 0;
+  if (runs.length > 0) {
+    // 提取所有日期并去重排序 (从小到大)
+    const dates = Array.from(new Set(runs.map(r => r.start_date_local.slice(0, 10))))
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    
+    longestStreak = 1;
+    let currentStreak = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1]);
+      const curr = new Date(dates[i]);
+      // 计算两个日期间隔天数
+      const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 3600 * 24));
+      if (diffDays === 1) {
+        currentStreak++;
+        longestStreak = Math.max(longestStreak, currentStreak);
+      } else if (diffDays > 1) {
+        currentStreak = 1; // 断签了，重新计算
+      }
+    }
+  }
+  // --- 👆 计算结束 👆 ---
   return (
     <Layout>
-      {/* <div className="fl w-30-l">
-        <h1 className="f1 fw9 i">
-          <a href="/">{siteTitle}</a>
-        </h1>
-        {(viewState.zoom ?? 0) <= 3 && IS_CHINESE ? (
-          <LocationStat
-            changeYear={changeYear}
-            changeCity={changeCity}
-            changeType={changeType}
-            onClickTypeInYear={changeTypeInYear}
-          />
-        ) : (
-          <YearsStat year={year} onClick={changeYear} onClickTypeInYear={changeTypeInYear}/>
-        )}
-      </div>*/}
       <div className='page-background'>
       <div className="page-map">
         <RunMap
@@ -222,6 +238,53 @@ const Index = () => {
         <div className="pagetitle">
       2025 年检查出来二型糖尿病，经过饮食及运动结合，已减重二十多斤。但随着不运动及饮食的不控制，体重开始反弹～今年的目标体重 130-140斤。
       </div>
+      {/* 👇 累计大数字  */}
+        <div className="geek-hud">
+          {/* 左侧绝对视觉中心 */}
+          <div className="hud-primary">
+            <span className="primary-label">累计里程</span>
+            <div className="primary-value">{totalDistance}<span className="primary-unit">KM</span></div>
+          </div>
+
+          {/* 核心视觉点缀：微光分割线 */}
+          <div className="hud-divider"></div>
+
+          {/* 右侧次级数据：2x2 极简矩阵 */}
+          <div className="hud-secondary">
+            <div className="sec-item">
+              <div className="sec-data">
+                <span className="sec-value">{rideDistance}</span>
+                <span className="sec-unit">km</span>
+              </div>
+              <span className="sec-label">骑行</span>
+            </div>
+            
+            <div className="sec-item">
+              <div className="sec-data">
+                <span className="sec-value">{hikeRunDistance}</span>
+                <span className="sec-unit">km</span>
+              </div>
+              <span className="sec-label">跑走</span>
+            </div>
+            
+            <div className="sec-item">
+              <div className="sec-data">
+                <span className="sec-value">{activeDays}</span>
+                <span className="sec-unit">天</span>
+              </div>
+              <span className="sec-label">出勤</span>
+            </div>
+            
+            <div className="sec-item">
+              <div className="sec-data">
+                <span className="sec-value">{longestStreak}</span>
+                <span className="sec-unit">天</span>
+              </div>
+              <span className="sec-label">最长连续</span>
+            </div>
+          </div>
+        </div>
+        {/* 👆 新增结束 👆 */}
         <div className='page-nrong'>
         {year === 'Total' ? (
           <SVGStat />
@@ -236,7 +299,6 @@ const Index = () => {
         )}
         </div>
         </div>
-      {/* Enable Audiences in Vercel Analytics: https://vercel.com/docs/concepts/analytics/audiences/quickstart */}
       <Analytics />
     </Layout>
   );

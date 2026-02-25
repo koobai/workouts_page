@@ -300,3 +300,96 @@ h5 .header-link {
     background: #605D5A;
   }
 }
+
+//大数字数据统计
+.geek-hud {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  margin: 20px 0 40px 0;
+  font-family: 'JetBrains Mono', -apple-system, sans-serif;
+}
+
+/* --- 左侧主干 --- */
+.hud-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* 让文字靠右，紧贴中间的分割线 */
+}
+
+.primary-label {
+  font-size: 0.85rem;
+  color: #999; 
+  letter-spacing: 6px; 
+  margin-bottom: 2px; 
+  margin-right: -6px; 
+}
+
+.primary-value {
+  font-size: 64px; 
+  font-weight: 900;
+  font-style: italic; 
+  color: #00FF00; 
+  line-height: 1;
+  text-shadow: 0 0 25px rgba(0, 255, 0, 0.2);
+}
+
+.primary-unit {
+  font-size: 20px;
+  margin-left: 8px;
+  color: #888; 
+  font-style: normal;
+  font-weight: 400;
+}
+
+.hud-divider {
+  width: 2px;
+  height: 70px;
+  background: linear-gradient(to bottom, transparent, #00FF00, transparent);
+  opacity: 0.5;
+}
+/* --- 右侧矩阵 --- */
+.hud-secondary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  column-gap: 50px; 
+  row-gap: 12px;
+}
+
+.sec-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.sec-value {
+  font-size: 26px;
+  font-weight: 800;
+  font-style: italic;
+  color: #dfdfdf;
+}
+
+.sec-label {
+  font-size: 0.85rem;
+  color: #999; 
+  letter-spacing: 1px;
+}
+.sec-data {
+  display: flex;
+  align-items: baseline; 
+  gap: 4px;
+}
+.sec-unit {
+  font-family: 'JetBrains Mono', -apple-system, sans-serif;
+  font-size: 0.85rem;
+  color: #888;
+  font-weight: 400;
+  font-style: normal;
+  text-transform: uppercase;
+}
+@media screen and (max-width: 768px) {
+  .geek-hud {
+    display: none;
+  }
+}
