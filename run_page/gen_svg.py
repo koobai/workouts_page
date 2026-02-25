@@ -242,20 +242,37 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    # circular not add footer and header
-    p.drawer_type = "plain" if is_circular else "title"
+    
+    p.drawer_type = "plain" if (is_circular or args.type == "github") else "title"
+    
     if args.type == "github":
-        p.height = 55 + p.years.count() * 43
-    # for special circular
+        p.height = p.years.count() * 43 + 15  # 15px 是完美的收口间距
+
+    def hack_svg_style(filepath):
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+            # 暴力替换底层的硬编码字体大小
+            content = content.replace('font-size="30"', 'font-size="18"') # 缩小网格图标题
+            content = content.replace('font-size="24"', 'font-size="12"') # 缩小热力图年份
+            # 注入你网站同款的极客代码字体
+            content = content.replace('</svg>', '<style>text { font-family: JetBrainsMono, -apple-system, sans-serif !important; font-weight: normal !important; }</style></svg>')
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception:
+            pass
+
     if is_circular:
         years = p.years.all()[:]
         for y in years:
             p.years.from_year, p.years.to_year = y, y
-            # may be refactor
             p.set_tracks(tracks)
-            p.draw(drawers[args.type], os.path.join("assets", f"year_{str(y)}.svg"))
+            out_path = os.path.join("assets", f"year_{str(y)}.svg")
+            p.draw(drawers[args.type], out_path)
+            hack_svg_style(out_path) # 触发注入
     else:
         p.draw(drawers[args.type], args.output)
+        hack_svg_style(args.output) # 触发注入
 
 
 if __name__ == "__main__":
