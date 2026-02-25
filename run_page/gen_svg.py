@@ -249,8 +249,15 @@ def main():
         
         year_dict = {}
         for t in tracks:
-            y = t.start_time.year if hasattr(t, 'start_time') else getattr(t, 'year', 2026)
-            year_dict[y] = year_dict.get(y, 0) + getattr(t, 'length', 0)
+            y = None
+            if hasattr(t, 'start_time') and t.start_time is not None:
+                y = t.start_time.year
+            elif hasattr(t, 'year') and t.year is not None:
+                y = t.year
+                
+            if y is not None:
+                year_dict[y] = year_dict.get(y, 0) + getattr(t, 'length', 0)
+                
         p.total_length_year_dict = year_dict
 
     def hack_svg_style(filepath):
