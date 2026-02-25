@@ -55,10 +55,12 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
       <td style={{ color: heartRate ? getHeartRateColor(heartRate) : 'inherit' }}>
         {heartRate ? (
           <>
+          <span className={styles.heartRateWrapper}>
             {heartRate.toFixed(0)}
             {heartRate >= 130 && (
               <span className={styles.heartRateEmoji}>🔥</span>
             )}
+            </span>
           </>
         ) : '-'}
       </td>

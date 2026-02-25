@@ -437,12 +437,12 @@ const sortDateFunc = (a: Activity, b: Activity) => {
 const sortDateFuncReverse = (a: Activity, b: Activity) => sortDateFunc(b, a);
 
 const getHeartRateColor = (bpm: number): string => {
-  if (bpm < 100) return '#e0e0e0'; // 亮银灰 (热身/拉伸/日常行走)
-  if (bpm < 115) return '#81d4fa'; // 亮天蓝 (Zone 1: 轻松恢复区)
-  if (bpm < 130) return '#a5d6a7'; // 清新浅绿 (Zone 2: 黄金燃脂区)
-  if (bpm < 145) return '#ffd54f'; // 明亮黄 (Zone 3: 有氧进阶区，微微气喘)
-  if (bpm < 160) return '#ffb74d'; // 亮橙色 (Zone 4: 乳酸阈值，比较痛苦)
-  return '#ff8a80';                // 珊瑚红 (Zone 5: 无氧极限，冲刺)
+  if (bpm < 100) return '#00CC00'; // 沉稳绿 (热身：比纯绿稍深，代表平静)
+  if (bpm < 115) return '#99FF00'; // 荧光柠 (Zone 1：带有明显黄调的青柠色，和沉稳绿彻底拉开差距)
+  if (bpm < 130) return '#FFFF00'; // 纯正黄 (Zone 2：最亮的明黄，代表身体彻底热开)
+  if (bpm < 145) return '#FF9900'; // 活力橙 (Zone 3：标准的橙色，去掉了黄色里的亮光，一看就上强度了)
+  if (bpm < 160) return '#FF3300'; // 激进橘红 (Zone 4：红中带橙，像烧红的木炭，警示感强)
+  return '#FF0000';                // 纯正红 (Zone 5：极致的深红，视觉上最重，代表拉爆)
 };
 
 const formatRunName = (name: string, startDateLocal: string, type: string): string => {

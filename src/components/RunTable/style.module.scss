@@ -67,7 +67,12 @@
   opacity: 0.7;
 }
 .heartRateEmoji {
-  margin-left: 2px;
+  font-size: 0.75rem;
+}
+.heartRateWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
  // 页面宽度小于900样式
  @media (max-width:768px){
