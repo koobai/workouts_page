@@ -243,9 +243,11 @@ def main():
     p.units = args.units
     p.set_tracks(tracks)
     # === 极客魔改布局开始 ===
+    
     p.drawer_type = "plain" if is_circular else "title"
+    # 从根源上削减生成高度，直接剪掉多余的下边距
     if args.type == "github":
-        p.height = 55 + p.years.count() * 43
+        p.height = 35 + p.years.count() * 43
 
     def hack_svg_style(filepath):
         try:
@@ -253,17 +255,32 @@ def main():
                 content = f.read()
             import re
             
-            content = re.sub(r'<rect[^>]*width="100%"[^>]*height="100%"[^>]*/>', '', content)
-            content = re.sub(
-                r'<text[^>]*font-size="30"[^>]*>([^<]+)</text>',
-                r'<text x="50%" y="35" font-size="18" text-anchor="middle">\1</text>',
-                content
-            )
+            # 魔法 1：强制居中并缩小大标题 (采用绝对安全的正则替换)
+            def center_title(match):
+                tag = match.group(0)
+                tag = re.sub(r'\bx="[^"]*"', '', tag) # 暴力抹除原有的靠左 x 坐标
+                return tag.replace('font-size="30"', 'font-size="18" x="50%" text-anchor="middle"')
+            
+            content = re.sub(r'<text[^>]*font-size="30"[^>]*>', center_title, content)
+            
+            # 魔法 2：缩小年份字体
             content = content.replace('font-size="24"', 'font-size="14"')
             
+            # 魔法 3：终极 CSS 注入解决边距问题
             css_inject = """
             <style>
+            /* 注入你的专属极客字体 */
             text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
+            
+            /* 暴力收缩左侧和顶部边距：将整个画面向左上方强行平移 */
+            svg > g { transform: translate(-15px, -15px); }
+            
+            /* 修复背景板：确保移动后，你网站的 #605D5A 依然死死铺满整个画面，不留白边 */
+            svg > rect:first-child { 
+                transform: translate(15px, 15px); 
+                width: 120% !important; 
+                height: 120% !important; 
+            }
             </style>
             </svg>
             """
@@ -271,7 +288,7 @@ def main():
             
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
-        except Exception:
+        except Exception as e:
             pass
 
     # 开始作画并触发魔改
