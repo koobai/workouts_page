@@ -259,24 +259,36 @@ def main():
             # 🎯 绝杀 1：精准捕捉并修改大标题
             target_title = args.title if args.title else ""
             if target_title:
-                # 寻找包裹着标题内容的 <text> 标签
                 pattern_title = r'<text[^>]*>(\s*' + re.escape(target_title) + r'\s*)</text>'
-                # 暴力替换：强制水平居中 (x="50%" text-anchor="middle")，并把原本的 12px 缩小到 8px！
                 replacement_title = r'<text x="50%" y="20" fill="#dfdfdf" text-anchor="middle" style="font-size: 6px; font-family: JetBrainsMono, -apple-system, sans-serif; font-weight: 700;">\1</text>'
                 content = re.sub(pattern_title, replacement_title, content)
             
-            # 🎯 绝杀 2：精准捕捉并修改年份 (如 2026, 2025...)
-            # 寻找任何内容是 20xx 的 <text> 标签
+            # 🎯 绝杀 2：精准捕捉并修改年份
             def compress_year(match):
-                tag_attributes = match.group(1) # 获取原本的 x, y, fill 等属性
-                year_text = match.group(2)      # 获取年份数字
-                
-                # 剥离旧的 style 样式
+                tag_attributes = match.group(1) 
+                year_text = match.group(2)      
                 tag_attributes = re.sub(r'style="[^"]*"', '', tag_attributes)
-                # 注入新的 style：把原本的 10px 缩小到 6px
                 return f'<text {tag_attributes} style="font-size: 5px; font-family: JetBrainsMono, -apple-system, sans-serif;">{year_text}</text>'
-                
             content = re.sub(r'<text([^>]*)>(\s*20\d{2}\s*)</text>', compress_year, content)
+
+            # 🎯 绝杀 3：将右侧的公里数上移，与年份硬核对齐！
+            # 正则特意只匹配 "数字+km" (如 22.7 km)，避免误伤底部统计里的 "Total: 2284 km"
+            def align_km(match):
+                tag_attributes = match.group(1)
+                km_text = match.group(2)
+                
+                # 找到 Y 坐标，并暴力减去 14 (抵消原作者硬编码的下移量)
+                def fix_y(m):
+                    new_y = int(m.group(1)) - 14
+                    return f'y="{new_y}"'
+                    
+                tag_attributes = re.sub(r'y="(\d+)"', fix_y, tag_attributes)
+                
+                # 顺手把公里数的字号也改小，保持精致感
+                tag_attributes = re.sub(r'style="[^"]*"', '', tag_attributes)
+                return f'<text{tag_attributes} style="font-size: 5px; font-family: JetBrainsMono, -apple-system, sans-serif;">{km_text}</text>'
+                
+            content = re.sub(r'<text([^>]*)>\s*([\d,]+(?:\.\d+)?\s*km)\s*</text>', align_km, content)
             
             # 全局字体兜底注入
             css_inject = """
