@@ -242,19 +242,43 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    # === 回归官方纯净版：只注入极客字体 ===
+    # === 极客魔改布局开始（真·内容锚定版） ===
     
-    # 保留官方原始的布局计算逻辑
     p.drawer_type = "plain" if is_circular else "title"
     if args.type == "github":
         p.height = 55 + p.years.count() * 43
 
-    # 只做一个最安全的操作：在图片末尾追加你网站的专属字体
-    def inject_font(filepath):
+    # 定义黑客函数：基于真实代码结构，精准替换内容样式！
+    def hack_svg_style(filepath):
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
             
+            import re
+            
+            # 🎯 绝杀 1：精准捕捉并修改大标题
+            target_title = args.title if args.title else ""
+            if target_title:
+                # 寻找包裹着标题内容的 <text> 标签
+                pattern_title = r'<text[^>]*>(\s*' + re.escape(target_title) + r'\s*)</text>'
+                # 暴力替换：强制水平居中 (x="50%" text-anchor="middle")，并把原本的 12px 缩小到 8px！
+                replacement_title = r'<text x="50%" y="20" fill="#dfdfdf" text-anchor="middle" style="font-size: 6px; font-family: JetBrainsMono, -apple-system, sans-serif; font-weight: 700;">\1</text>'
+                content = re.sub(pattern_title, replacement_title, content)
+            
+            # 🎯 绝杀 2：精准捕捉并修改年份 (如 2026, 2025...)
+            # 寻找任何内容是 20xx 的 <text> 标签
+            def compress_year(match):
+                tag_attributes = match.group(1) # 获取原本的 x, y, fill 等属性
+                year_text = match.group(2)      # 获取年份数字
+                
+                # 剥离旧的 style 样式
+                tag_attributes = re.sub(r'style="[^"]*"', '', tag_attributes)
+                # 注入新的 style：把原本的 10px 缩小到 6px
+                return f'<text {tag_attributes} style="font-size: 5px; font-family: JetBrainsMono, -apple-system, sans-serif;">{year_text}</text>'
+                
+            content = re.sub(r'<text([^>]*)>(\s*20\d{2}\s*)</text>', compress_year, content)
+            
+            # 全局字体兜底注入
             css_inject = """
             <style>
             text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
@@ -265,10 +289,10 @@ def main():
             
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
-        except Exception:
+        except Exception as e:
             pass
 
-    # 开始作画并触发字体注入
+    # 开始作画并触发魔改
     if is_circular:
         years = p.years.all()[:]
         for y in years:
@@ -276,10 +300,12 @@ def main():
             p.set_tracks(tracks)
             out_path = os.path.join("assets", f"year_{str(y)}.svg")
             p.draw(drawers[args.type], out_path)
-            inject_font(out_path)
+            hack_svg_style(out_path)
     else:
         p.draw(drawers[args.type], args.output)
-        inject_font(args.output)
+        hack_svg_style(args.output)
+        
+    # === 极客魔改布局结束 ===
 
 
 if __name__ == "__main__":
