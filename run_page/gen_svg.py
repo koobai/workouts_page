@@ -242,67 +242,43 @@ def main():
     }
     p.units = args.units
     p.set_tracks(tracks)
-    # === 极客魔极布局开始（像素级精控版） ===
+    # === 极客魔改布局开始（真·内容锚定版） ===
     
     p.drawer_type = "plain" if is_circular else "title"
-    
     if args.type == "github":
-        p.height = 35 + p.years.count() * 32 
+        p.height = 55 + p.years.count() * 43
 
+    # 定义黑客函数：基于真实代码结构，精准替换内容样式！
     def hack_svg_style(filepath):
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
+            
             import re
-
-            # 🎯 绝杀 1：标题处理 (6px + 居中)
+            
+            # 🎯 绝杀 1：精准捕捉并修改大标题
             target_title = args.title if args.title else ""
             if target_title:
+                # 寻找包裹着标题内容的 <text> 标签
                 pattern_title = r'<text[^>]*>(\s*' + re.escape(target_title) + r'\s*)</text>'
-                # 标题压到 6px，向上提一点到 y=12
-                replacement_title = r'<text x="50%" y="12" fill="#dfdfdf" text-anchor="middle" style="font-size: 6px; font-family: JetBrainsMono, -apple-system, sans-serif; font-weight: 700;">\1</text>'
+                # 暴力替换：强制水平居中 (x="50%" text-anchor="middle")，并把原本的 12px 缩小到 8px！
+                replacement_title = r'<text x="50%" y="20" fill="#dfdfdf" text-anchor="middle" style="font-size: 6px; font-family: JetBrainsMono, -apple-system, sans-serif; font-weight: 700;">\1</text>'
                 content = re.sub(pattern_title, replacement_title, content)
-
-            # 🎯 绝杀 2 & 3：年份 (5px) 与 公里数 (4px) 垂直压缩并同行对齐
-            def compress_and_align(match):
-                full_tag = match.group(0)
-                try:
-                    # 提取原始 y 坐标
-                    old_y = float(re.search(r'y="([\d.]+)"', full_tag).group(1))
-                    
-                    # 1. 识别行索引 (基于原始 43px 步长)
-                    base_y = 30 
-                    row_index = int((old_y - base_y) / 43) if old_y > base_y else 0
-                    y_in_row = (old_y - base_y) % 43
-                    
-                    # 2. 压缩行距：新 y 坐标基于 32px 步长
-                    new_y = base_y + (row_index * 32) + y_in_row
-                    
-                    # 3. 针对性修改字号和对齐
-                    # 处理年份 (识别内容为 20xx)
-                    if re.search(r'>\s*20\d{2}\s*<', full_tag):
-                        full_tag = re.sub(r'style="[^"]*"', 'style="font-size: 5px; font-family: JetBrainsMono;"', full_tag)
-                        new_tag = re.sub(r'y="[\d.]+"', f'y="{new_y:.1f}"', full_tag)
-                        return new_tag
-                    
-                    # 处理公里数 (识别内容为 xx km)
-                    elif ' km' in full_tag:
-                        # 重点：公里数原本比年份低 5px，我们把它减掉实现对齐，并设为 4px
-                        aligned_y = new_y - 5.0
-                        full_tag = re.sub(r'style="[^"]*"', 'style="font-size: 4px; font-family: JetBrainsMono;"', full_tag)
-                        new_tag = re.sub(r'y="[\d.]+"', f'y="{aligned_y:.1f}"', full_tag)
-                        return new_tag
-                    
-                    # 处理热力图方块和月份 (y 轴同步平移)
-                    else:
-                        return re.sub(r'y="[\d.]+"', f'y="{new_y:.1f}"', full_tag)
-                except:
-                    return full_tag
-
-            # 执行全量坐标压缩
-            content = re.sub(r'<(text|rect)[^>]*y="[\d.]+"[^>]*>.*?</\1>|<(text|rect)[^>]*y="[\d.]+"[^/>]*/?>', compress_and_align, content, flags=re.DOTALL)
-
-            # 注入全局 CSS
+            
+            # 🎯 绝杀 2：精准捕捉并修改年份 (如 2026, 2025...)
+            # 寻找任何内容是 20xx 的 <text> 标签
+            def compress_year(match):
+                tag_attributes = match.group(1) # 获取原本的 x, y, fill 等属性
+                year_text = match.group(2)      # 获取年份数字
+                
+                # 剥离旧的 style 样式
+                tag_attributes = re.sub(r'style="[^"]*"', '', tag_attributes)
+                # 注入新的 style：把原本的 10px 缩小到 6px
+                return f'<text {tag_attributes} style="font-size: 5px; font-family: JetBrainsMono, -apple-system, sans-serif;">{year_text}</text>'
+                
+            content = re.sub(r'<text([^>]*)>(\s*20\d{2}\s*)</text>', compress_year, content)
+            
+            # 全局字体兜底注入
             css_inject = """
             <style>
             text { font-family: JetBrainsMono, -apple-system, sans-serif !important; }
@@ -313,10 +289,10 @@ def main():
             
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
-        except Exception:
+        except Exception as e:
             pass
 
-    # 开始作画
+    # 开始作画并触发魔改
     if is_circular:
         years = p.years.all()[:]
         for y in years:

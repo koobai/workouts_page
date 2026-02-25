@@ -12,3 +12,9 @@
 .center {
   text-align: center;
 }
+// 页面宽度小于900样式
+@media (max-width:768px){
+  .runSVG {
+  margin-top: 0;
+}
+}
