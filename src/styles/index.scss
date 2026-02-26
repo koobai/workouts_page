@@ -31,10 +31,10 @@ body::before {
   top: 0;
   left: 0;
   width: 100%;
-  height: 80px; /* 挡住顶部区域 */
-  background: #151516; /* 严格和网页底色一致 */
+  height: 80px; 
+  background: #151516; 
   z-index: 75; 
-  pointer-events: none; /* 防止遮挡鼠标点击 */
+  pointer-events: none; 
 }
 
 iframe { 
@@ -257,7 +257,7 @@ h5 .header-link {
   font-size: 1rem; 
   line-height: 1.6; 
   max-width: 700px; 
-  margin: 50px auto 20px auto; 
+  margin: 60px auto 15px auto; 
   padding: 0 20px; 
   text-align: center; 
   color: #8E8E93; 
@@ -271,14 +271,14 @@ h5 .header-link {
 .buttons {
   position: sticky;
   top: 16px; 
-  z-index: 90; /* 保证它压在引言和地图的上面 */
+  z-index: 90; 
   
   display: flex; 
   justify-content: center; 
   align-items: center; 
   gap: 10px; 
   padding: 4px; 
-  margin: 0 auto 30px auto; 
+  margin: 0 auto 20px auto; 
   list-style: none; 
   
   background: rgba(30, 30, 32, 0.75); 
@@ -313,15 +313,24 @@ h5 .header-link {
 }
 
 // ------------------------------------
-// 3. 极致 5 卡片布局
+// 🌟 左(地图) + 右(统计) 🌟
 // ------------------------------------
+
+.bento-hero {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr; 
+  gap: 10px;
+  margin-bottom: 15px;
+  position: sticky;
+  top: 76px; 
+  z-index: 80; 
+}
+
+/* 右侧：统计面板变成了内嵌的两列网格 */
 .bento-dashboard {
   display: grid; 
-  grid-template-columns: repeat(4, 1fr); 
+  grid-template-columns: repeat(2, 1fr); 
   gap: 10px; 
-  margin: 0 0 24px 0; 
-  position: relative;
-  z-index: 80; /* 保持跟地图同层级，平稳过渡 */
 }
 
 .bento-card {
@@ -334,14 +343,13 @@ h5 .header-link {
 
 .bento-primary {
   @extend .bento-card; 
-  grid-column: span 2; 
-  grid-row: span 2; 
-  padding: 32px; 
+  grid-column: span 2;
+  grid-row: auto; 
+  padding: 24px;
   align-items: flex-start; 
   justify-content: space-between;
-  background: linear-gradient(145deg, rgba(30, 30, 32, 1) 0%, rgba(20, 20, 22, 1) 100%);
   transition: transform 0.2s ease, background 0.2s ease;
-    &:hover { 
+  &:hover { 
     background: #242426; 
     transform: translateY(-3px); 
   }
@@ -369,16 +377,17 @@ h5 .header-link {
 }
 
 .bento-value { 
-  font-size: 68px; 
+  font-size: 56px;
   font-weight: 800; 
   font-style: italic; 
   color: #32D74B; 
-  line-height: 0.9; 
+  line-height: 1; 
+  margin-bottom: 6px;
   filter: drop-shadow(0 0 12px rgba(50, 215, 75, 0.2)); 
 }
 
 .bento-unit { 
-  font-size: 18px; 
+  font-size: 16px; 
   color: #666; 
   margin-left: 6px; 
   font-style: normal; 
@@ -412,17 +421,14 @@ h5 .header-link {
 }
 
 // ------------------------------------
-// 🌟 4. 圆角地图 (吸顶) : 层级 80 🌟
+// 左侧：圆角地图 
 // ------------------------------------
 .bento-card-map {
   @extend .bento-card; 
-  
-  position: sticky;
-  top: 76px; 
-  z-index: 80; /* 层级高于列表(70) */
-  
+  position: relative;
   width: 100%; 
-  height: 300px; 
+  height: 100%; 
+  min-height: 320px; 
   overflow: hidden; 
   margin-bottom: 0; 
   padding: 0;
@@ -445,7 +451,7 @@ h5 .header-link {
 }
 
 // ------------------------------------
-// 🌟 5. 列表卡片及表格 : 最底层级 70 🌟
+// 🌟 4. 列表卡片及表格 : 最底层级 70 🌟
 // ------------------------------------
 .bento-card-table {
   @extend .bento-card; 
@@ -453,10 +459,10 @@ h5 .header-link {
   z-index: 70; 
   background: #1C1C1E; 
   padding: 0; 
-  margin-top: 24px; 
   margin-bottom: 120px; 
   overflow: hidden;
 }
+
 // ------------------------------------
 // 手机端响应式适配
 // ------------------------------------
@@ -495,15 +501,23 @@ h5 .header-link {
     max-width: 100%; 
   }
   
+  /* 手机端取消左右分栏，恢复上下堆叠，并取消吸顶 */
+  .bento-hero {
+    display: block;
+  }
+  
   .bento-dashboard { 
     display: none;
   }
+  
   .bento-card-table {
     margin-top: 10px; 
     margin-bottom: 50px; 
   }
-  /* 手机端地图取消吸顶 */
+  
+  /* 手机端地图固定高度 */
   .bento-card-map { 
     height: 240px; 
+    min-height: auto;
   }
 }

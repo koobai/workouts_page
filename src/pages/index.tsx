@@ -227,7 +227,6 @@ const Index = () => {
   yearArray.push('Total');
   return (
     <Layout>
-      <div className='page-background'>
         <div className="pagetitle">
           2025 年检查出来二型糖尿病，经过饮食及运动结合，已减重二十多斤。但随着不运动及饮食的不控制，体重开始反弹～今年的目标体重 130-140斤。
         </div>
@@ -242,6 +241,17 @@ const Index = () => {
             </li>
           ))}
         </ul>
+        <div className="bento-hero">
+          <div className="page-map bento-card-map">
+          <RunMap
+            title={title}
+            viewState={viewState}
+            geoData={geoData}
+            setViewState={setViewState}
+            changeYear={changeYear}
+            thisYear={year}
+          />
+        </div>
         <div className="bento-dashboard">
           <div className="bento-card bento-primary">
             <div className="bento-value">{totalDistance}<span className="bento-unit">KM</span></div>
@@ -264,15 +274,6 @@ const Index = () => {
              <span className="bento-label-sm">最长连续</span>
           </div>
         </div>
-        <div className="page-map bento-card-map">
-          <RunMap
-            title={title}
-            viewState={viewState}
-            geoData={geoData}
-            setViewState={setViewState}
-            changeYear={changeYear}
-            thisYear={year}
-          />
         </div>
         <div className='page-nrong bento-card-table'>
           {year === 'Total' ? (
@@ -287,8 +288,6 @@ const Index = () => {
             />
           )}
         </div>
-
-      </div>
       <Analytics />
     </Layout>
   );
