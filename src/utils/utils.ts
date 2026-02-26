@@ -476,7 +476,7 @@ const formatRunName = (name: string, startDateLocal: string, type: string): stri
     case 'Ride': typeStr = '骑行'; break;
     case 'Swim': typeStr = '游泳'; break;
     case 'Hike':
-    case 'Walk': typeStr = '行走'; break;
+    case 'Walk': typeStr = '步行'; break;
     default: typeStr = '运动';
   }
 
