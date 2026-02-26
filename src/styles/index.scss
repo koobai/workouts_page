@@ -461,11 +461,13 @@ h5 .header-link {
 // 手机端响应式适配
 // ------------------------------------
 @media (max-width: 768px) {
+body {
+  padding: 0 15px 20px 15px; 
+  }
   /* 手机端取消顶部遮罩 */
   body::before {
     display: none; 
   }
-  
   .header { 
     bottom: 12px; 
     width: 100px; 
@@ -488,30 +490,29 @@ h5 .header-link {
   .pagetitle { 
     display: block; 
     margin-top: 30px; 
+    margin-bottom: 10px;
     font-size: 0.85rem; 
     &::before { display: none; } 
   }
   
+
   .buttons { 
     overflow-x: auto; 
     justify-content: flex-start; 
     padding: 4px; 
-    margin: 0 auto 30px auto; 
+    margin: 0 auto 12px auto; 
     max-width: 100%; 
   }
   
   .bento-dashboard { 
     display: none;
   }
-  
+  .bento-card-table {
+    margin-top: 10px; 
+    margin-bottom: 50px; 
+  }
   /* 手机端地图取消吸顶 */
   .bento-card-map { 
-    height: 360px; 
-    position: relative; 
-    top: 0;
-  }
-  
-  .bento-card-table { 
-    padding: 16px; 
+    height: 240px; 
   }
 }
