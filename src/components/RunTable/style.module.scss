@@ -32,8 +32,7 @@
 
     th {
       /* 🌟 核心优化：拉大表头的上下左右间距 (呼吸感) */
-      padding: 1.1rem 2rem; 
-      font-weight: 500;
+      padding: 1.1rem; 
       letter-spacing: 1px;
       cursor: pointer;           
       user-select: none;        
@@ -54,12 +53,10 @@
   opacity: 0;
   animation: slideUpFade 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   transition: background 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
   td {
-    /* 🌟 核心优化：数据行也拉大间距，和表头对齐 */
-    padding: 1.1rem 2rem;
-    /* 🌟 加上极致的 0.05 透明度分割线 */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.1rem;
     font-size: 0.95rem;
 
     &:first-child {
@@ -70,15 +67,13 @@
       word-break: break-word; 
     }
   }
-  
 
-  /* 最后一行去掉分割线，保持底部干净 */
-  &:last-child td {
+  /* 同样，最后一行去掉边框，保持底部干净 */
+  &:last-child {
     border-bottom: none;
   }
 
   &:hover {
-    /* 鼠标滑过时的高亮，类似 macOS 列表选中时的质感 */
     background-color: rgba(255, 255, 255, 0.04);
   }
 }
@@ -91,7 +86,7 @@
 
 .runDate {
   color: #dfdfdf;
-  font-size: 0.9rem;
+  font-size: 0.85rem !important;
   display: flex;
   justify-content: flex-end; 
   align-items: baseline; 
@@ -99,6 +94,7 @@
   column-gap: 6px; 
   row-gap: 2px; 
   line-height: 1.2;
+  opacity: 0.7;
 }
 
 .runDateHeader {
@@ -106,7 +102,6 @@
 }
 
 .timePart {
-  font-size: 0.85em;
   opacity: 0.5;
   margin: 0; 
   white-space: nowrap;
