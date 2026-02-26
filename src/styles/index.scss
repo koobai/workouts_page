@@ -135,9 +135,20 @@ h5 .header-link {
   font-family: 'JetBrainsMono';
   font-display: swap;
   font-weight: 400;
+  font-style: normal;
   src: local('JetBrains Mono'), 
        local('JetBrainsMono'), 
        url('https://img.koobai.com/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  unicode-range: U+0021-00FF; 
+}
+@font-face {
+  font-family: 'JetBrainsMono';
+  font-display: swap;
+  font-weight: 800; 
+  font-style: italic;
+  src: local('JetBrains Mono ExtraBold Italic'), 
+       local('JetBrainsMono-ExtraBoldItalic'),
+       url('https://img.koobai.com/fonts/JetBrainsMono-ExtraBoldItalic.woff2') format('woff2');
   unicode-range: U+0021-00FF; 
 }
 
@@ -308,7 +319,6 @@ h5 .header-link {
   justify-content: center;
   gap: 40px;
   margin: 20px 0 40px 0;
-  font-family: 'JetBrains Mono', -apple-system, sans-serif;
 }
 
 /* --- 左侧主干 --- */
@@ -327,9 +337,9 @@ h5 .header-link {
 }
 
 .primary-value {
-  font-size: 64px; 
-  font-weight: 900;
-  font-style: italic; 
+  font-size: 68px; 
+  font-style: italic;
+  font-weight: 800;
   color: #00FF00; 
   line-height: 1;
   text-shadow: 0 0 25px rgba(0, 255, 0, 0.2);
@@ -340,7 +350,6 @@ h5 .header-link {
   margin-left: 8px;
   color: #888; 
   font-style: normal;
-  font-weight: 400;
 }
 
 .hud-divider {
@@ -364,9 +373,9 @@ h5 .header-link {
 }
 
 .sec-value {
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 28px;
   font-style: italic;
+  font-weight: 800;
   color: #dfdfdf;
 }
 
@@ -381,7 +390,6 @@ h5 .header-link {
   gap: 4px;
 }
 .sec-unit {
-  font-family: 'JetBrains Mono', -apple-system, sans-serif;
   font-size: 0.85rem;
   color: #888;
   font-weight: 400;
