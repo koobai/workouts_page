@@ -422,7 +422,7 @@ h5 .header-link {
   z-index: 80; /* 层级高于列表(70) */
   
   width: 100%; 
-  height: 350px; 
+  height: 300px; 
   overflow: hidden; 
   margin-bottom: 0; 
   padding: 0;
@@ -461,12 +461,8 @@ h5 .header-link {
 // 手机端响应式适配
 // ------------------------------------
 @media (max-width: 768px) {
-body {
-  padding: 0 15px 20px 15px; 
-  }
-  /* 手机端取消顶部遮罩 */
-  body::before {
-    display: none; 
+  body {
+    padding: 0 15px 20px 15px; 
   }
   .header { 
     bottom: 12px; 
@@ -488,14 +484,9 @@ body {
   }
   
   .pagetitle { 
-    display: block; 
     margin-top: 30px; 
     margin-bottom: 10px;
-    font-size: 0.85rem; 
-    &::before { display: none; } 
   }
-  
-
   .buttons { 
     overflow-x: auto; 
     justify-content: flex-start; 
