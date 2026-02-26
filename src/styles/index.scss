@@ -3,18 +3,20 @@
 @import './variables';
 @import './themes';
 
-img::selection {
-  background: transparent;
+img::selection { 
+  background: transparent; 
 }
 
-img::-moz-selection {
-  background: transparent;
+img::-moz-selection { 
+  background: transparent; 
 }
 
+/* 🌟 1. 整体底色深空灰 (Apple Dark Mode) */
 body {
   font-family: $global-font-family;
-  background: #605D5A;
-  max-width: 800px;
+  padding: 0 20px 20px 20px; 
+  background: #151516; /* 极其深邃的冷黑色 */
+  max-width: 840px; 
   margin: auto;
   font-weight: normal;
   text-rendering: optimizeLegibility;
@@ -22,382 +24,494 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-iframe {
-  border: none;
+/* 🌟 顶部固定遮罩 (Ceiling Mask) : 层级 75 🌟 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px; /* 挡住顶部区域 */
+  background: #151516; /* 严格和网页底色一致 */
+  z-index: 75; 
+  pointer-events: none; /* 防止遮挡鼠标点击 */
 }
 
-// Theme
-
-h1,
-h2,
-h3,
-h4,
-h5 {
-  @extend .near-black;
-  @extend .lh-solid;
+iframe { 
+  border: none; 
 }
 
-b,
-strong {
-  @extend .black;
-  @extend .b;
+// ------------------------------------
+// 基础文本元素主题
+// ------------------------------------
+h1, h2, h3, h4, h5 { 
+  @extend .near-black; 
+  @extend .lh-solid; 
 }
 
-nav {
-  a {
-    @extend .dark-gray;
-
-    &.active {
-      @extend .silver;
-    }
-  }
+b, strong { 
+  @extend .black; 
+  @extend .b; 
 }
 
-p {
-  @extend .dark-gray;
-  @extend .lh-copy;
-
-  a {
-    @extend .link;
-    @extend .underline-hover;
-  }
+nav a { 
+  @extend .dark-gray; 
+  &.active { 
+    @extend .silver; 
+  } 
 }
 
-hr {
-  border-top: none;
-
-  @extend .bb;
-  @extend .b--black-20;
-  @extend .mv4;
+p { 
+  @extend .dark-gray; 
+  @extend .lh-copy; 
+  a { 
+    @extend .link; 
+    @extend .underline-hover; 
+  } 
 }
 
-ul,
-ol {
-  @extend .pl4;
-  @extend .lh-copy;
-  @extend .dark-gray;
-
-  li {
-    @extend .lh-copy;
-
-    a {
-      @extend .link;
-      @extend .underline-hover;
-    }
-  }
+hr { 
+  border-top: none; 
+  @extend .bb; 
+  @extend .b--black-20; 
+  @extend .mv4; 
 }
 
-time {
-  @extend .gray;
+ul, ol { 
+  @extend .pl4; 
+  @extend .lh-copy; 
+  @extend .dark-gray; 
+  li { 
+    @extend .lh-copy; 
+    a { 
+      @extend .link; 
+      @extend .underline-hover; 
+    } 
+  } 
 }
 
-a.post-colophon-link,
-a.post-colophon-link:visited {
-  color: transparentize(black, 0.7) !important;
+time { 
+  @extend .gray; 
 }
 
-.gist table tr:last-child {
-  border-bottom: 1px;
+a.post-colophon-link, 
+a.post-colophon-link:visited { 
+  color: transparentize(black, 0.7) !important; 
 }
 
-h2 .header-link {
-  margin-top: 2rem;
+.gist table tr:last-child { 
+  border-bottom: 1px; 
 }
 
-h3 .header-link {
-  margin-top: 2rem;
+h2 .header-link, h3 .header-link { 
+  margin-top: 2rem; 
 }
 
-h5 .header-link {
-  margin-top: -0.14rem;
+h5 .header-link { 
+  margin-top: -0.14rem; 
 }
 
-.markdown-content .grvsc-container {
-  @extend .bg-light-gray;
-
-  font-size: 0.875rem !important;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-  .grvsc-line {
-    padding: 0 1rem;
-  }
+.markdown-content .grvsc-container { 
+  @extend .bg-light-gray; 
+  font-size: 0.875rem !important; 
+  &::-webkit-scrollbar { 
+    display: none; 
+  } 
+  .grvsc-line { 
+    padding: 0 1rem; 
+  } 
 }
 
-.markdown-content .gatsby-resp-image-wrapper {
-  margin-top: 1rem;
+.markdown-content .gatsby-resp-image-wrapper { 
+  margin-top: 1rem; 
 }
 
-//自定义css
+// ------------------------------------
+// 自定义字体
+// ------------------------------------
 @font-face {
-  font-family: 'JetBrainsMono';
-  font-display: swap;
-  font-weight: 400;
+  font-family: 'JetBrainsMono'; 
+  font-display: swap; 
+  font-weight: 400; 
   font-style: normal;
   src: local('JetBrains Mono'), 
        local('JetBrainsMono'), 
        url('https://img.koobai.com/fonts/JetBrainsMono-Regular.woff2') format('woff2');
   unicode-range: U+0021-00FF; 
 }
+
 @font-face {
-  font-family: 'JetBrainsMono';
-  font-display: swap;
+  font-family: 'JetBrainsMono'; 
+  font-display: swap; 
   font-weight: 800; 
   font-style: italic;
   src: local('JetBrains Mono ExtraBold Italic'), 
-       local('JetBrainsMono-ExtraBoldItalic'),
+       local('JetBrainsMono-ExtraBoldItalic'), 
        url('https://img.koobai.com/fonts/JetBrainsMono-ExtraBoldItalic.woff2') format('woff2');
   unicode-range: U+0021-00FF; 
 }
 
+// ------------------------------------
+// 底部导航栏
+// ------------------------------------
 .header {
- /* 1. 基础定位 */
-  position: fixed;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed; 
+  bottom: 30px; 
+  left: 50%; 
+  transform: translateX(-50%); 
   z-index: 100;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 50px;
+  display: flex; 
+  flex-direction: row; 
+  justify-content: space-between; 
+  align-items: center; 
+  border-radius: 50px; 
   width: 620px; 
-  height: auto;
-  padding: 20px 30px;
-  bottom: 30px;
-  background: rgba(85, 82, 78, 0.6);
-  backdrop-filter: blur(25px) saturate(200%); 
-  -webkit-backdrop-filter: blur(25px) saturate(200%);
-  border: 0.5px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
-      0 0 1px rgba(0, 0, 0, 0.5),    /* 边缘加固 */
-      0 12px 40px rgba(0, 0, 0, 0.3);
-  /* 开启硬件加速 */
-  -webkit-transform: translateX(-50%) translateZ(0);
-  transform: translateX(-50%) translateZ(0);
+  height: auto; 
+  padding: 20px 30px; 
+  background: rgba(28, 28, 30, 0.8); 
+  backdrop-filter: blur(20px) saturate(200%); 
+  -webkit-backdrop-filter: blur(20px) saturate(200%); 
+  border: 1px solid rgba(255, 255, 255, 0.08); 
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
-.header svg {
-  display: flex;
-   width: 28px;       /* 统一图标大小 */
-    height: 28px;
-}
-.header-menu{
-  display: flex;
-  gap: 38px;
-  align-items: center;
-  z-index: 2;
-  flex-wrap: wrap;
- }
- .header-menu a {
-  color: #B8ABA2;
-  font-size: 0.8rem;
-  display: flex;
-  flex-direction: column; /* 核心：开启上下排列 */
-  align-items: center;    /* 居中对齐 */
-  gap: 4px;              /* 图标与文字的间距 */
- }
- .header-menu a:hover {
-  text-decoration: underline;
- }
- .header-right {
-  display: flex;
-  grid-gap: 20px; /* 中间空10px间距 */
-  align-items: center;
-  margin-left: auto;
-  z-index: 2;
- }
-.header-right svg{
-  fill: #B8ABA2;
-  width: 20px;
-  height: 20px;
-  display: block;
-}
-.header-right svg:hover{
-  fill: #C3AACC;
-}
-.about-koobai img{
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  transition: opacity .3s ease-in-out;
-  display: block;
-}
-.about-koobai img:hover{
-  opacity: 0.6;
-}
-.menu-gaoliang{
-  color: #C3AACC !important;
-}
-.menu-gaoliang svg {
-    transform: scale(1.1); 
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
- // 页面宽度小于900样式
-@media (max-width:768px){
-  body {
-    padding: 0 20px 20px 20px;
-  }
-  .header {
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px; 
-  height: 50px;
-  display: flex;
-  justify-content: center; /* 水平居中 */
-  align-items: center;     /* 垂直居中 */
-  box-shadow:none;
-  }
-  .header-right {
-    grid-gap: 0;
-    margin-left: 0;
 
-   }
-  .header-right svg{
-    display: none;
-  }
-  .pagetitle {
-    display: none;
-  }
- 
-  .header-menu{
-    display: none;
-   }
+.header svg { 
+  display: flex; 
+  width: 28px; 
+  height: 28px; 
 }
-.page-map {
-  position: sticky; 
-  top: 0; 
-  left: 0;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  z-index: 10; 
+
+.header-menu { 
+  display: flex; 
+  gap: 38px; 
+  align-items: center; 
+  z-index: 2; 
+  flex-wrap: wrap; 
 }
-.page-map:after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 100%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 35%, #605D5A 100%);
-  pointer-events: none;
+
+.header-menu a { 
+  color: #8E8E93; 
+  font-size: 0.8rem; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 4px; 
+  transition: color 0.3s ease; 
 }
+
+.header-menu a:hover { 
+  color: #FFFFFF; 
+  text-decoration: none; 
+}
+
+.header-right { 
+  display: flex; 
+  grid-gap: 20px; 
+  align-items: center; 
+  margin-left: auto; 
+  z-index: 2; 
+}
+
+.header-right svg { 
+  fill: #8E8E93; 
+  width: 20px; 
+  height: 20px; 
+  display: block; 
+  transition: fill 0.3s ease; 
+}
+
+.header-right svg:hover { 
+  fill: #32D74B; 
+}
+
+.about-koobai img { 
+  width: 36px; 
+  height: 36px; 
+  border-radius: 50%; 
+  transition: opacity .3s ease-in-out; 
+  display: block; 
+}
+
+.about-koobai img:hover { 
+  opacity: 0.6; 
+}
+
+.menu-gaoliang { 
+  color: #32D74B !important; 
+}
+
+.menu-gaoliang svg { 
+  fill: #32D74B !important; 
+  transform: scale(1.1); 
+  filter: drop-shadow(0 0 8px rgba(50, 215, 75, 0.4)); 
+}
+
+::selection { 
+  background: rgba(50, 215, 75, 0.3); 
+}
+
+// ------------------------------------
+// 🌟 页面引言
+// ------------------------------------
 .pagetitle {
-  font-size: 1rem;
-  line-height: 1.6;
-  max-width: 620px;
-  margin: 0 auto;
-  padding-bottom: 20px;
-  text-align: center;
-  color: #dfdfdf;
-  position: relative;
-  z-index: 2;
-}
-.page-nrong{
-  margin-top: 10px;
-}
-//文本选择高亮颜色
-::selection {
-  background: #634939;
+  font-size: 1rem; 
+  line-height: 1.6; 
+  max-width: 700px; 
+  margin: 50px auto 20px auto; 
+  padding: 0 20px; 
+  text-align: center; 
+  color: #8E8E93; 
+  position: relative; 
+  z-index: 85;
 }
 
-// 夜间模式页面样式
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #605D5A;
+// ------------------------------------
+// 🌟 2. 全局年份切换器 (吸顶) : 层级 90 🌟
+// ------------------------------------
+.buttons {
+  position: sticky;
+  top: 16px; 
+  z-index: 90; /* 保证它压在引言和地图的上面 */
+  
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  gap: 10px; 
+  padding: 4px; 
+  margin: 0 auto 30px auto; 
+  list-style: none; 
+  
+  background: rgba(30, 30, 32, 0.75); 
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 99px; 
+  width: fit-content; 
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.button {
+  display: inline-block; 
+  cursor: pointer; 
+  font-size: 0.85rem; 
+  text-align: center; 
+  color: #8E8E93; 
+  border-radius: 99px; 
+  padding: 8px 20px; 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover { 
+    color: #FFF; 
   }
 }
 
-//大数字数据统计
-.geek-hud {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 40px;
-  margin: 20px 0 40px 0;
+.buttons .selected {
+  color: #151516; 
+  background: #32D74B; 
+  box-shadow: 0 2px 10px rgba(50, 215, 75, 0.3); 
+  font-weight: bold;
 }
 
-/* --- 左侧主干 --- */
-.hud-primary {
-  display: flex;
+// ------------------------------------
+// 3. 极致 5 卡片布局
+// ------------------------------------
+.bento-dashboard {
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 10px; 
+  margin: 0 0 24px 0; 
+  position: relative;
+  z-index: 80; /* 保持跟地图同层级，平稳过渡 */
+}
+
+.bento-card {
+  background: #1C1C1E; 
+  border: 1px solid rgba(255, 255, 255, 0.05); 
+  border-radius: 16px; 
+  display: flex; 
   flex-direction: column;
-  align-items: flex-end; /* 让文字靠右，紧贴中间的分割线 */
 }
 
-.primary-label {
-  font-size: 0.85rem;
-  color: #999; 
-  letter-spacing: 6px; 
-  margin-bottom: 2px; 
-  margin-right: -6px; 
+.bento-primary {
+  @extend .bento-card; 
+  grid-column: span 2; 
+  grid-row: span 2; 
+  padding: 32px; 
+  align-items: flex-start; 
+  justify-content: space-between;
+  background: linear-gradient(145deg, rgba(30, 30, 32, 1) 0%, rgba(20, 20, 22, 1) 100%);
+  transition: transform 0.2s ease, background 0.2s ease;
+    &:hover { 
+    background: #242426; 
+    transform: translateY(-3px); 
+  }
 }
 
-.primary-value {
+.bento-sub {
+  @extend .bento-card; 
+  grid-column: span 1; 
+  padding: 16px 20px; 
+  align-items: flex-start; 
+  justify-content: space-between; 
+  transition: transform 0.2s ease, background 0.2s ease;
+  
+  &:hover { 
+    background: #242426; 
+    transform: translateY(-3px); 
+  }
+}
+
+.bento-label { 
+  font-size: 13px; 
+  color: #8E8E93; 
+  letter-spacing: 2px; 
+  text-transform: uppercase; 
+}
+
+.bento-value { 
   font-size: 68px; 
-  font-style: italic;
-  font-weight: 800;
-  color: #00FF00; 
-  line-height: 1;
-  text-shadow: 0 0 25px rgba(0, 255, 0, 0.2);
+  font-weight: 800; 
+  font-style: italic; 
+  color: #32D74B; 
+  line-height: 0.9; 
+  filter: drop-shadow(0 0 12px rgba(50, 215, 75, 0.2)); 
 }
 
-.primary-unit {
-  font-size: 20px;
-  margin-left: 8px;
-  color: #888; 
-  font-style: normal;
+.bento-unit { 
+  font-size: 18px; 
+  color: #666; 
+  margin-left: 6px; 
+  font-style: normal; 
 }
 
-.hud-divider {
-  width: 2px;
-  height: 70px;
-  background: linear-gradient(to bottom, transparent, #00FF00, transparent);
-  opacity: 0.5;
-}
-/* --- 右侧矩阵 --- */
-.hud-secondary {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); 
-  column-gap: 50px; 
-  row-gap: 12px;
-}
-
-.sec-item {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.sec-value {
-  font-size: 28px;
-  font-style: italic;
-  font-weight: 800;
-  color: #dfdfdf;
-}
-
-.sec-label {
-  font-size: 0.85rem;
-  color: #999; 
-  letter-spacing: 1px;
-}
-.sec-data {
-  display: flex;
+.bento-data { 
+  display: flex; 
   align-items: baseline; 
-  gap: 4px;
+  gap: 4px; 
+  margin-bottom: 6px; 
 }
-.sec-unit {
-  font-size: 0.85rem;
-  color: #888;
-  font-weight: 400;
-  font-style: normal;
-  text-transform: uppercase;
+
+.bento-value-sm { 
+  font-size: 24px; 
+  font-weight: 800; 
+  font-style: italic; 
+  color: #dfdfdf; 
+  line-height: 1; 
 }
-@media screen and (max-width: 768px) {
-  .geek-hud {
+
+.bento-unit-sm { 
+  font-size: 12px; 
+  color: #8E8E93; 
+  text-transform: uppercase; 
+}
+
+.bento-label-sm { 
+  font-size: 12px; 
+  color: #666666; 
+  letter-spacing: 1px; 
+}
+
+// ------------------------------------
+// 🌟 4. 圆角地图 (吸顶) : 层级 80 🌟
+// ------------------------------------
+.bento-card-map {
+  @extend .bento-card; 
+  
+  position: sticky;
+  top: 76px; 
+  z-index: 80; /* 层级高于列表(70) */
+  
+  width: 100%; 
+  height: 350px; 
+  overflow: hidden; 
+  margin-bottom: 0; 
+  padding: 0;
+  
+  > div { 
+    height: 100% !important; 
+    width: 100% !important; 
+    position: absolute !important; 
+    top: 0; 
+    left: 0; 
+  }
+  
+  &::after { 
+    content: ''; 
+    position: absolute; 
+    inset: 0; 
+    background: inset 0 0 40px rgba(0,0,0,0.6);
+    pointer-events: none; 
+  }
+}
+
+// ------------------------------------
+// 🌟 5. 列表卡片及表格 : 最底层级 70 🌟
+// ------------------------------------
+.bento-card-table {
+  @extend .bento-card; 
+  position: relative;
+  z-index: 70; 
+  background: #1C1C1E; 
+  padding: 0; 
+  margin-top: 24px; 
+  margin-bottom: 120px; 
+  overflow: hidden;
+}
+// ------------------------------------
+// 手机端响应式适配
+// ------------------------------------
+@media (max-width: 768px) {
+  /* 手机端取消顶部遮罩 */
+  body::before {
+    display: none; 
+  }
+  
+  .header { 
+    bottom: 12px; 
+    width: 100px; 
+    height: 50px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    box-shadow: none; 
+  }
+  
+  .header-right { 
+    grid-gap: 0; 
+    margin-left: 0; 
+  }
+  
+  .header-right svg, .header-menu { 
+    display: none; 
+  }
+  
+  .pagetitle { 
+    display: block; 
+    margin-top: 30px; 
+    font-size: 0.85rem; 
+    &::before { display: none; } 
+  }
+  
+  .buttons { 
+    overflow-x: auto; 
+    justify-content: flex-start; 
+    padding: 4px; 
+    margin: 0 auto 30px auto; 
+    max-width: 100%; 
+  }
+  
+  .bento-dashboard { 
     display: none;
+  }
+  
+  /* 手机端地图取消吸顶 */
+  .bento-card-map { 
+    height: 360px; 
+    position: relative; 
+    top: 0;
+  }
+  
+  .bento-card-table { 
+    padding: 16px; 
   }
 }

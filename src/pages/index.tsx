@@ -222,83 +222,73 @@ const Index = () => {
     }
   }
   // --- 👆 计算结束 👆 ---
+  const yearArray = Array.from(new Set(activities.map((a: Activity) => a.start_date_local.slice(0, 4))));
+  yearArray.sort((a, b) => b.localeCompare(a)); 
+  yearArray.push('Total');
   return (
     <Layout>
       <div className='page-background'>
-      <div className="page-map">
-        <RunMap
-          title={title}
-          viewState={viewState}
-          geoData={geoData}
-          setViewState={setViewState}
-          changeYear={changeYear}
-          thisYear={year}
-        />
-        </div>
         <div className="pagetitle">
-      2025 年检查出来二型糖尿病，经过饮食及运动结合，已减重二十多斤。但随着不运动及饮食的不控制，体重开始反弹～今年的目标体重 130-140斤。
-      </div>
-      {/* 👇 累计大数字  */}
-        <div className="geek-hud">
-          {/* 左侧绝对视觉中心 */}
-          <div className="hud-primary">
-            <span className="primary-label">累计里程</span>
-            <div className="primary-value">{totalDistance}<span className="primary-unit">KM</span></div>
+          2025 年检查出来二型糖尿病，经过饮食及运动结合，已减重二十多斤。但随着不运动及饮食的不控制，体重开始反弹～今年的目标体重 130-140斤。
+        </div>
+        <ul className="buttons">
+          {yearArray.map((y) => (
+            <li
+              key={y}
+              className={`button ${year === y ? 'selected' : ''}`}
+              onClick={() => changeYear(y)}
+            >
+              {y}
+            </li>
+          ))}
+        </ul>
+        <div className="bento-dashboard">
+          <div className="bento-card bento-primary">
+            <div className="bento-value">{totalDistance}<span className="bento-unit">KM</span></div>
+            <span className="bento-label">累计里程</span>
           </div>
-
-          {/* 核心视觉点缀：微光分割线 */}
-          <div className="hud-divider"></div>
-
-          {/* 右侧次级数据：2x2 极简矩阵 */}
-          <div className="hud-secondary">
-            <div className="sec-item">
-              <div className="sec-data">
-                <span className="sec-value">{rideDistance}</span>
-                <span className="sec-unit">km</span>
-              </div>
-              <span className="sec-label">骑行</span>
-            </div>
-            
-            <div className="sec-item">
-              <div className="sec-data">
-                <span className="sec-value">{hikeRunDistance}</span>
-                <span className="sec-unit">km</span>
-              </div>
-              <span className="sec-label">跑走</span>
-            </div>
-            
-            <div className="sec-item">
-              <div className="sec-data">
-                <span className="sec-value">{activeDays}</span>
-                <span className="sec-unit">天</span>
-              </div>
-              <span className="sec-label">出勤</span>
-            </div>
-            
-            <div className="sec-item">
-              <div className="sec-data">
-                <span className="sec-value">{longestStreak}</span>
-                <span className="sec-unit">天</span>
-              </div>
-              <span className="sec-label">最长连续</span>
-            </div>
+          <div className="bento-card bento-sub">
+             <div className="bento-data"><span className="bento-value-sm">{rideDistance}</span><span className="bento-unit-sm">KM</span></div>
+             <span className="bento-label-sm">骑行</span>
+          </div>
+          <div className="bento-card bento-sub">
+             <div className="bento-data"><span className="bento-value-sm">{hikeRunDistance}</span><span className="bento-unit-sm">KM</span></div>
+             <span className="bento-label-sm">跑走</span>
+          </div>
+           <div className="bento-card bento-sub">
+             <div className="bento-data"><span className="bento-value-sm">{activeDays}</span><span className="bento-unit-sm">天</span></div>
+             <span className="bento-label-sm">出勤</span>
+          </div>
+           <div className="bento-card bento-sub">
+             <div className="bento-data"><span className="bento-value-sm">{longestStreak}</span><span className="bento-unit-sm">天</span></div>
+             <span className="bento-label-sm">最长连续</span>
           </div>
         </div>
-        {/* 👆 新增结束 👆 */}
-        <div className='page-nrong'>
-        {year === 'Total' ? (
-          <SVGStat />
-        ) : (
-          <RunTable
-            runs={runs}
-            locateActivity={locateActivity}
-            setActivity={setActivity}
-            runIndex={runIndex}
-            setRunIndex={setRunIndex}
+        <div className="page-map bento-card-map">
+          <RunMap
+            title={title}
+            viewState={viewState}
+            geoData={geoData}
+            setViewState={setViewState}
+            changeYear={changeYear}
+            thisYear={year}
           />
-        )}
         </div>
+        <div className='page-nrong bento-card-table'>
+          {year === 'Total' ? (
+            <SVGStat />
+          ) : (
+            <RunTable
+              runs={runs}
+              locateActivity={locateActivity}
+              setActivity={setActivity}
+              runIndex={runIndex}
+              setRunIndex={setRunIndex}
+            />
+          )}
         </div>
+
+      </div>
       <Analytics />
     </Layout>
   );

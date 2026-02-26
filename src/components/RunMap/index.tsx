@@ -189,7 +189,7 @@ const RunMap = ({
       {...viewState}
       onMove={onMove}
       style={style}
-      mapStyle="mapbox://styles/mapbox/dark-v10"
+      mapStyle="mapbox://styles/mapbox/dark-v11"
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
       interactiveLayerIds={['runs2-hover-area']}
@@ -212,7 +212,7 @@ const RunMap = ({
       }}
       onMouseLeave={() => setHoverInfo(null)}
     >
-      <RunMapButtons changeYear={changeYear} thisYear={thisYear} />
+      {/*<RunMapButtons changeYear={changeYear} thisYear={thisYear} />*/}
       <Source id="data" type="geojson" data={displayData}>
         <Layer
           id="province"
@@ -267,7 +267,7 @@ const RunMap = ({
           endLon={endLon}
         />
       )}
-      <span className={styles.runTitle}>{title}</span>
+      {/*<span className={styles.runTitle}>{title}</span>*/}
       <FullscreenControl style={fullscreenButton}/>
       {!PRIVACY_MODE && <LightsControl setLights={setLights} lights={lights}/>}
       <NavigationControl showCompass={false} position={'bottom-right'} style={{opacity: 0.3}}/>

@@ -1,96 +1,6 @@
 @import '../../styles/variables.scss';
 
-.runTable {
-  width: 100%;
-  font-variant: tabular-nums;
-  margin-bottom: 150px;
-
-  thead {
-    color: $light;
-    font-size: 0.85rem;
-    text-align: left;
-
-    th {
-      padding: 0.5rem;
-      cursor: pointer;           
-      user-select: none;        
-      -webkit-user-select: none;
-      &:hover {
-        opacity: 0.7;
-      }
-    }
-  }
-}
-
-.runRow {
-  cursor: pointer;
-  td {
-    padding: 0.5rem;
-    border: 0;
-   
-
-    &:first-child {
-      text-align: left;
-      min-width: 110px;
-      max-width: 140px;
-      line-height: 1.4;
-    }
-  }
-
-  &:hover {
-    background-color: lighten($dark, 3%);
-    td:first-child {
-      border-top-left-radius: 12px;
-      border-bottom-left-radius: 12px;
-    }
-    td:last-child {
-      border-top-right-radius: 12px;
-      border-bottom-right-radius: 12px;
-    }
-  }
-}
-
-.selected {
-  color: #FC9151 !important;
-}
-
-.tableContainer {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.runDate {
-  color: $light;
-  font-size: 0.85rem;
-  text-align: right;
-}
-.runDateHeader {
-  text-align: right;
-}
-.paceUnit {
-  font-size: 0.75em;
-  margin-left: 3px;
-  opacity: 0.7;
-}
-.heartRateEmoji {
-  font-size: 0.75rem;
-}
-.heartRateWrapper {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
- // 页面宽度小于900样式
- @media (max-width:768px){
-  .runTable {
-    width: 150%;
-  }
-  .runTable {
-  margin-bottom: 60px;
-}
- }
-
-//列表加载动画
+// 列表加载动画保持不变
 @keyframes slideUpFade {
   0% {
     opacity: 0;
@@ -102,13 +12,132 @@
   }
 }
 
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.runTable {
+  width: 100%;
+  font-variant: tabular-nums;
+  /* 🌟 核心：必须合并边框，分割线才会生效 */
+  border-collapse: collapse; 
+
+  thead {
+    color: #8E8E93; /* Apple 高级灰 */
+    font-size: 0.85rem;
+    text-align: left;
+    /* 给表头加个极其微弱的暗背景，拉开层次 */
+    background: rgba(0, 0, 0, 0.15); 
+
+    th {
+      /* 🌟 核心优化：拉大表头的上下左右间距 (呼吸感) */
+      padding: 1.1rem 2rem; 
+      font-weight: 500;
+      letter-spacing: 1px;
+      cursor: pointer;           
+      user-select: none;        
+      -webkit-user-select: none;
+      /* 加上底部细线 */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: #FFFFFF;
+      }
+    }
+  }
+}
+
 .runRow {
+  cursor: pointer;
   opacity: 0;
   animation: slideUpFade 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transition: background 0.2s ease;
+
+  td {
+    /* 🌟 核心优化：数据行也拉大间距，和表头对齐 */
+    padding: 1.1rem 2rem;
+    /* 🌟 加上极致的 0.05 透明度分割线 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.95rem;
+
+    &:first-child {
+      text-align: left;
+      min-width: 110px;
+      max-width: 140px;
+      line-height: 1.4;
+      word-break: break-word; 
+    }
+  }
+  
+
+  /* 最后一行去掉分割线，保持底部干净 */
+  &:last-child td {
+    border-bottom: none;
+  }
+
+  &:hover {
+    /* 鼠标滑过时的高亮，类似 macOS 列表选中时的质感 */
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+}
+
+/* 强制让选中的行呈现明亮 */
+.selected {
+  color: #FFFF00 !important;
+  background-color: rgba(50, 215, 75, 0.05) !important;
+}
+
+.runDate {
+  color: #dfdfdf;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: flex-end; 
+  align-items: baseline; 
+  flex-wrap: wrap; 
+  column-gap: 6px; 
+  row-gap: 2px; 
+  line-height: 1.2;
+}
+
+.runDateHeader {
+  text-align: right;
 }
 
 .timePart {
-  font-size: 0.9em;
-  opacity: 0.7; 
-  margin-left: 6px; 
+  font-size: 0.85em;
+  opacity: 0.5;
+  margin: 0; 
+  white-space: nowrap;
+}
+
+.paceUnit {
+  font-size: 0.75em;
+  margin-left: 3px;
+  opacity: 0.7;
+}
+
+.heartRateEmoji {
+  font-size: 0.75rem;
+}
+
+.heartRateWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+// 页面宽度小于 768px 样式 (手机端)
+@media (max-width: 768px) {
+  .runTable {
+    width: 100%; /* 修复原来 150% 导致的横向滚动黑边问题 */
+  }
+  
+  .runTable thead th,
+  .runRow td {
+    /* 手机端稍微缩小一点间距，防止文字挤压 */
+    padding: 1rem 0.6rem;
+    font-size: 0.85rem;
+  }
 }
