@@ -26,7 +26,8 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       const month = Number(dateStr.slice(5, 7)) - 1; 
       
       const utcDayTimestamp = new Date(`${dateStr}T00:00:00Z`).getTime();
-      const exactTime = new Date(r.start_date_local).getTime();
+      // 🌟 优化 1：修复 Safari 浏览器下日期解析返回 NaN 的致命兼容性 Bug
+      const exactTime = new Date(r.start_date_local.replace(' ', 'T')).getTime();
 
       return { ...r, dateStr, month, utcDayTimestamp, exactTime };
     });
@@ -79,7 +80,7 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       maxStreak 
     };
   }, [normalizedRuns]);
-  // 🌟 1. 计算 Sparkline 基础数据 (引入高斯平滑算法，绝对丝滑)
+
   const sparklineData = useMemo(() => {
     let rawData: number[] = [];
     
@@ -96,7 +97,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
         rawData.push(yearMap.get(y) || 0);
       }
     } else {
-      // 52 周数据
       const weekData = new Array(52).fill(0);
       normalizedRuns.forEach(r => {
         const firstDay = new Date(displayYear, 0, 1).getTime();
@@ -107,24 +107,21 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       rawData = weekData;
     }
 
-    // 🌟 核心魔法：1D 卷积平滑 (Moving Average Smoothing)
     const smoothedData = rawData.map((val, idx, arr) => {
       const prev = arr[idx - 1] !== undefined ? arr[idx - 1] : val;
       const next = arr[idx + 1] !== undefined ? arr[idx + 1] : val;
-      // 权重分配：当前周占 50%，前后各占 25%
       return prev * 0.25 + val * 0.5 + next * 0.25;
     });
 
     return smoothedData;
   }, [normalizedRuns, isTotal, displayYear]);
 
-  // 🌟 2. 生成平滑曲线 (数学逻辑最清晰的完整版，拒绝压缩)
   const sparklinePath = useMemo(() => {
     if (sparklineData.length === 0) return '';
     
     const width = 200;
     const height = 40;
-    const pad = 4; // 🌟 底部保护间距
+    const pad = 4; 
     
     const max = Math.max(...sparklineData, 1); 
     const points = sparklineData.map((d, i) => ({
@@ -148,7 +145,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       const cp2x = p2.x - (p3.x - p1.x) / 6;
       let cp2y = p2.y - (p3.y - p1.y) / 6;
       
-      // 🌟 核心修复：强制限制控制点，完美防溢出
       cp1y = Math.max(pad, Math.min(height - pad, cp1y));
       cp2y = Math.max(pad, Math.min(height - pad, cp2y));
       
@@ -156,6 +152,41 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     }
     return path;
   }, [sparklineData]);
+
+  const { yearlyMaxDate, monthlyMaxDates } = useMemo(() => {
+    if (isTotal || normalizedRuns.length === 0) {
+      return { yearlyMaxDate: '', monthlyMaxDates: new Map<number, string>() };
+    }
+
+    const distMap = new Map<string, number>();
+
+    normalizedRuns.forEach(r => {
+      distMap.set(r.dateStr, (distMap.get(r.dateStr) || 0) + r.distance);
+    });
+
+    let yMax = 0;
+    let yDate = '';
+    const mMax = new Map<number, number>();
+    const mDate = new Map<number, string>();
+
+    distMap.forEach((dist, dateStr) => {
+      const year = dateStr.slice(0, 4);
+      const month = Number(dateStr.slice(5, 7)) - 1;
+
+      if (dist > yMax) {
+        yMax = dist;
+        yDate = dateStr;
+      }
+      
+      if (dist > (mMax.get(month) || 0)) {
+        mMax.set(month, dist);
+        mDate.set(month, dateStr);
+      }
+    });
+
+    return { yearlyMaxDate: yDate, monthlyMaxDates: mDate };
+  }, [normalizedRuns, isTotal]);
+
   const { runsByDate, monthDetailStats } = useMemo(() => {
     const map = new Map<string, typeof normalizedRuns>();
     let total = 0, ride = 0, run = 0;
@@ -185,7 +216,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     };
   }, [normalizedRuns, monthIndex, isTotal]);
 
-  // 🌟 翻页时记录方向
   const handlePrevMonth = () => {
     setDirection(-1);
     setMonthIndex(prev => Math.max(0, prev - 1));
@@ -202,6 +232,21 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
 
   return (
     <div className={styles.boardContainer}>
+      
+      {/* 🌟 优化 2：全局集中定义 SVG 渐变，彻底避免 ID 冲突与重复渲染消耗 */}
+      <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
+        <defs>
+          <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FFD700" />
+            <stop offset="100%" stopColor="#F59E0B" />
+          </linearGradient>
+          <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#64D2FF" />
+            <stop offset="100%" stopColor="#0A84FF" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       <div className={styles.globalSection}>
         {sparklinePath && (
           <svg key={year} className={styles.sparkline} viewBox="0 0 200 40" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
@@ -211,19 +256,8 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                 <stop offset="100%" stopColor="#32D74B" stopOpacity="0" />
               </linearGradient>
             </defs>
-            {/* 渐变填充区域 */}
-            <path 
-              d={`${sparklinePath} L 200,40 L 0,40 Z`} 
-              fill="url(#sparklineGrad)" 
-              stroke="none" 
-              className={styles.sparklineFill}
-            />
-            {/* 纯净发光线条 */}
-            <path 
-              d={sparklinePath} 
-              fill="none" 
-              className={styles.sparklineLine} 
-            />
+            <path d={`${sparklinePath} L 200,40 L 0,40 Z`} fill="url(#sparklineGrad)" stroke="none" className={styles.sparklineFill} />
+            <path d={sparklinePath} fill="none" className={styles.sparklineLine} />
           </svg>
         )}
         <div className={styles.globalMainStat}>
@@ -260,11 +294,11 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
         <div className={styles.calendarSection}>
           <div className={styles.monthHeader}>
             <div className={styles.monthNav}>
-              <button onClick={handlePrevMonth} disabled={monthIndex === 0}>
+              <button onClick={handlePrevMonth} disabled={monthIndex === 0} title="上个月">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
               </button>
               <span>{displayYear}-{String(monthIndex + 1).padStart(2, '0')}</span>
-              <button onClick={handleNextMonth} disabled={monthIndex === 11}>
+              <button onClick={handleNextMonth} disabled={monthIndex === 11} title="下个月">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
             </div>
@@ -274,12 +308,7 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i}>{d}</div>)}
           </div>
           
-          {/* 🌟 核心魔法：使用 key 强制 React 重绘 DOM，配合 data-direction 传递给 CSS */}
-          <div 
-            key={`${displayYear}-${monthIndex}`} 
-            className={styles.grid}
-            data-direction={direction}
-          >
+          <div key={`${displayYear}-${monthIndex}`} className={styles.grid} data-direction={direction}>
             {days.map((day, idx) => {
               if (!day) return <div key={`empty-${idx}`} className={styles.emptyDay} />;
               
@@ -291,15 +320,14 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
               const runColor = primaryRun ? colorFromType(primaryRun.type) : '#32D74B';
               const isSelected = hasRun && runs[runIndex]?.run_id === primaryRun?.run_id;
 
-              const tooltipText = hasRun 
-                ? dayRuns.map(r => `${formatRunName(r.name, r.start_date_local, r.type)}  ${(r.distance / 1000).toFixed(1)} km`).join('\n')
-                : undefined;
+              const isYearlyMax = dateStr === yearlyMaxDate;
+              const isMonthlyMax = !isYearlyMax && dateStr === monthlyMaxDates.get(monthIndex);
+              const isMaxDay = isYearlyMax || isMonthlyMax;
 
               return (
                 <div
                   key={dateStr}
-                  data-tooltip={tooltipText} 
-                  className={`${styles.dayCell} ${hasRun ? styles.hasRun : ''} ${isSelected ? styles.selected : ''}`}
+                  className={`${styles.dayCell} ${hasRun ? styles.hasRun : ''} ${isSelected ? styles.selected : ''} ${isMaxDay ? styles.maxDay : ''}`}
                   onClick={() => {
                     if (hasRun && primaryRun) {
                       if (isSelected) {
@@ -312,34 +340,74 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                     }
                   }}
                   style={{ 
-                    backgroundColor: isSelected ? `${runColor}26` : undefined,
-                    boxShadow: isSelected ? `inset 0 0 0 1px ${runColor}` : undefined 
+                    backgroundColor: (isSelected && !isMaxDay) ? `${runColor}26` : undefined,
+                    boxShadow: (isSelected && !isMaxDay) ? `inset 0 0 0 1px ${runColor}` : undefined 
                   }}
                 >
-                  <span 
-                    className={styles.dateNum} 
-                    style={{ 
-                      color: hasRun ? runColor : 'inherit',
-                      opacity: hasRun ? 1 : 0.3,
-                      fontWeight: hasRun ? 800 : 500,
-                      textShadow: hasRun ? `0 0 8px ${runColor}40` : 'none'
-                    }}
-                  >
-                    {day}
-                  </span>
+                  {hasRun && (
+                    <div className={styles.runTooltip}>
+                      <div className={styles.ttList}>
+                        {dayRuns.map((r) => (
+                          /* 🌟 优化 3：采用唯一 run_id 作为 key，提升 React 渲染性能 */
+                          <div key={r.run_id} className={styles.ttItem}>
+                            <span className={styles.ttName} style={{ color: colorFromType(r.type) }}>
+                              {formatRunName(r.name, r.start_date_local, r.type)}
+                            </span>
+                            <span className={styles.ttVal}>{(r.distance / 1000).toFixed(1)} <small>km</small></span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {isMaxDay && (
+                        <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD700' : '#64D2FF' }}>
+                          <span>{isYearlyMax ? '年度最高' : '月度最高'}</span>
+                          <span className={styles.ttVal}>
+                            {(dayRuns.reduce((sum, r) => sum + r.distance, 0) / 1000).toFixed(1)} <small>km</small>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {isMaxDay ? (
+                    isYearlyMax ? (
+                      <svg className={styles.yearlyBadge} viewBox="0 0 36 36" fill="currentColor">
+                        <circle cx="18" cy="18" r="16" fill="url(#goldGrad)" />
+                        <circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" />
+                        <path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" />
+                      </svg>
+                    ) : (
+                      <svg className={styles.monthlyBadge} viewBox="0 0 36 36" fill="currentColor">
+                        <circle cx="18" cy="18" r="16" fill="url(#blueGrad)" />
+                        <circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" />
+                        <path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" />
+                      </svg>
+                    )
+                  ) : (
+                    <span 
+                      className={styles.dateNum} 
+                      style={{ 
+                        color: hasRun ? runColor : 'inherit',
+                        opacity: hasRun ? 1 : 0.3,
+                        fontWeight: hasRun ? 800 : 500,
+                        textShadow: hasRun ? `0 0 8px ${runColor}40` : 'none'
+                      }}
+                    >
+                      {day}
+                    </span>
+                  )}
                   
-                  {dayRuns.length > 1 && (
+                  {!isMaxDay && dayRuns.length > 1 && (
                     <div className={styles.dotsRow}>
-                      {dayRuns.map((r, i) => (
+                      {dayRuns.map((r) => (
                         <span 
-                          key={i} 
+                          key={r.run_id} 
                           className={styles.tinyDot} 
                           style={{ backgroundColor: colorFromType(r.type) }}
                         />
                       ))}
                     </div>
                   )}
-                  
                 </div>
               );
             })}
