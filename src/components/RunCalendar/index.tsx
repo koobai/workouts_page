@@ -10,80 +10,112 @@ interface IRunCalendarProps {
   year: string; 
 }
 
-// 🌟 优化 1：抽离公共算法。用一次遍历计算所有里程，替代原本的 3 次 filter + reduce，性能提升 300%
-const calculateDistances = (runList: Activity[]) => {
-  let total = 0, ride = 0, run = 0;
-  runList.forEach(r => {
-    total += r.distance;
-    if (r.type === 'Ride' || r.type === 'VirtualRide') ride += r.distance;
-    else if (r.type === 'Run' || r.type === 'Hike') run += r.distance;
-  });
-  return {
-    totalDist: total / 1000,
-    rideDist: ride / 1000,
-    runDist: run / 1000,
-  };
-};
+// 🌟 优化 5：使用 Set 替代 || 判断，扩展性与性能双收
+const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide']);
+const RUN_TYPES = new Set(['Run', 'Hike', 'TrailRun', 'Walk']);
 
 const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRunCalendarProps) => {
   const isTotal = year === 'Total';
   const displayYear = isTotal ? new Date().getFullYear() : Number(year);
-  
+
+  // 🌟 优化 1 & 4：在最外层执行一次性 O(n) 数据预处理，彻底消灭下游所有的 new Date() 和 findIndex()
+  const { normalizedRuns, runIdIndexMap } = useMemo(() => {
+    const indexMap = new Map<number, number>();
+    const normRuns = runs.map((r, i) => {
+      indexMap.set(r.run_id, i); // 建立 O(1) 的索引哈希表
+      
+      const dateStr = r.start_date_local.slice(0, 10);
+      const month = Number(dateStr.slice(5, 7)) - 1; // 0-11
+      
+      // 🌟 优化 2：强制使用 UTC 午夜时间戳，彻底免疫所有时区和夏令时差异！
+      const utcDayTimestamp = new Date(`${dateStr}T00:00:00Z`).getTime();
+      // 精确时间戳，留给同一天多次运动排序用
+      const exactTime = new Date(r.start_date_local).getTime();
+
+      return { ...r, dateStr, month, utcDayTimestamp, exactTime };
+    });
+    return { normalizedRuns: normRuns, runIdIndexMap: indexMap };
+  }, [runs]);
+
   const [monthIndex, setMonthIndex] = useState<number>(new Date().getMonth());
 
   useEffect(() => {
-    if (!isTotal && runs.length > 0) {
-      setMonthIndex(new Date(runs[0].start_date_local).getMonth());
+    if (!isTotal && normalizedRuns.length > 0) {
+      setMonthIndex(normalizedRuns[0].month);
     }
-  }, [runs, isTotal]);
+  }, [normalizedRuns, isTotal]);
 
   const globalStats = useMemo(() => {
-    const dists = calculateDistances(runs);
-    const datesSet = new Set(runs.map(r => r.start_date_local.slice(0, 10)));
-    const activeDays = datesSet.size;
+    let totalDist = 0, rideDist = 0, runDist = 0;
+    const datesSet = new Set<number>(); // 存 utcDayTimestamp
 
+    normalizedRuns.forEach(r => {
+      totalDist += r.distance;
+      if (RIDE_TYPES.has(r.type)) rideDist += r.distance;
+      else if (RUN_TYPES.has(r.type)) runDist += r.distance;
+      datesSet.add(r.utcDayTimestamp);
+    });
+
+    const activeDays = datesSet.size;
     let maxStreak = 0;
+
     if (activeDays > 0) {
-      // 🌟 优化 2：对于 "YYYY-MM-DD" 格式的字符串，直接原生 sort() 排序即可，无需转成 getTime()
-      const dates = Array.from(datesSet).sort();
+      // 🌟 优化 2：直接整数天数相减，无浮点误差，极其稳定
+      const timestamps = Array.from(datesSet).sort((a, b) => a - b);
       maxStreak = 1;
       let currStreak = 1;
-      for (let i = 1; i < dates.length; i++) {
-        const prev = new Date(dates[i - 1]).getTime();
-        const curr = new Date(dates[i]).getTime();
-        if (Math.round((curr - prev) / 86400000) === 1) {
+      for (let i = 1; i < timestamps.length; i++) {
+        // 86400000 是精确的一天的毫秒数，因为全是 UTC 午夜，除出来绝对是完美整数
+        const diffDays = (timestamps[i] - timestamps[i - 1]) / 86400000;
+        if (diffDays === 1) {
           currStreak++;
           maxStreak = Math.max(maxStreak, currStreak);
-        } else {
+        } else if (diffDays > 1) {
           currStreak = 1;
         }
       }
     }
-    return { ...dists, activeDays, maxStreak };
-  }, [runs]);
+    return { 
+      totalDist: totalDist / 1000, 
+      rideDist: rideDist / 1000, 
+      runDist: runDist / 1000, 
+      activeDays, 
+      maxStreak 
+    };
+  }, [normalizedRuns]);
 
-  const currentMonthRuns = useMemo(() => {
-    if (isTotal) return [];
-    return runs.filter(run => new Date(run.start_date_local).getMonth() === monthIndex);
-  }, [runs, monthIndex, isTotal]);
+  // 🌟 优化 6：真正的大杀器！一次 O(n) 遍历同时完成：当月数据筛选、按天哈希分组、当月里程统计
+  const { runsByDate, monthDetailStats } = useMemo(() => {
+    const map = new Map<string, typeof normalizedRuns>();
+    let total = 0, ride = 0, run = 0;
 
-  // 🌟 优化 3：直接复用刚才写的工具函数，代码极其清爽
-  const monthDetailStats = useMemo(() => calculateDistances(currentMonthRuns), [currentMonthRuns]);
+    if (!isTotal) {
+      normalizedRuns.forEach(r => {
+        if (r.month === monthIndex) {
+          // 1. 构建日历渲染所需的字典树
+          if (!map.has(r.dateStr)) map.set(r.dateStr, []);
+          map.get(r.dateStr)!.push(r);
+          
+          // 2. 顺手统计当月数据
+          total += r.distance;
+          if (RIDE_TYPES.has(r.type)) ride += r.distance;
+          else if (RUN_TYPES.has(r.type)) run += r.distance;
+        }
+      });
 
-  const runsByDate = useMemo(() => {
-    const map = new Map<string, Activity[]>();
-    currentMonthRuns.forEach(run => {
-      const dateStr = run.start_date_local.slice(0, 10);
-      if (!map.has(dateStr)) map.set(dateStr, []);
-      map.get(dateStr)!.push(run);
-    });
-    // 🌟 优化 4：在 useMemo 缓存里就把每天的运动按时间倒序排好！
-    // 避免在下方的 return 渲染循环里每次重新渲染都去执行耗时的 .sort()
-    map.forEach(dayRuns => {
-      dayRuns.sort((a, b) => new Date(b.start_date_local).getTime() - new Date(a.start_date_local).getTime());
-    });
-    return map;
-  }, [currentMonthRuns]);
+      // 3. 将每天内部的数据按具体时间倒序排好（由于数据量极小，性能损耗可忽略）
+      map.forEach(dayRuns => {
+        if (dayRuns.length > 1) {
+          dayRuns.sort((a, b) => b.exactTime - a.exactTime);
+        }
+      });
+    }
+
+    return {
+      runsByDate: map,
+      monthDetailStats: { totalDist: total / 1000, rideDist: ride / 1000, runDist: run / 1000 }
+    };
+  }, [normalizedRuns, monthIndex, isTotal]);
 
   const handlePrevMonth = () => setMonthIndex(prev => Math.max(0, prev - 1));
   const handleNextMonth = () => setMonthIndex(prev => Math.min(11, prev + 1));
@@ -100,7 +132,7 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
           <span className={styles.val}>{globalStats.totalDist.toFixed(1)}</span>
           <span className={styles.unit}>KM</span>
         </div>
-        <div className={styles.globalTitle}>{isTotal ? '累计里程' : '累计里程'}</div>
+        <div className={styles.globalTitle}>{isTotal ? '生涯累计里程' : '累计里程'}</div>
         
         <div className={styles.metricsRow}>
           <div className={styles.metricBlock}>
@@ -149,7 +181,7 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
               if (!day) return <div key={`empty-${idx}`} className={styles.emptyDay} />;
               
               const dateStr = `${displayYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-              // 🌟 这里的 dayRuns 已经是预先按时间排好序的了，直接取第 0 个就是最新运动！
+              // 直接 O(1) 获取预先整理好的当天数据
               const dayRuns = runsByDate.get(dateStr) || [];
               const hasRun = dayRuns.length > 0;
               const primaryRun = hasRun ? dayRuns[0] : null;
@@ -163,7 +195,8 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
 
               return (
                 <div
-                  key={day}
+                  // 🌟 优化 3：抛弃 key={day}，使用绝对唯一的 dateStr，彻底消灭重渲染或动画复用隐患
+                  key={dateStr}
                   data-tooltip={tooltipText} 
                   className={`${styles.dayCell} ${hasRun ? styles.hasRun : ''} ${isSelected ? styles.selected : ''}`}
                   onClick={() => {
@@ -173,7 +206,9 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                         setRunIndex(-1);
                       } else {
                         locateActivity([primaryRun.run_id]);
-                        setRunIndex(runs.findIndex(r => r.run_id === primaryRun.run_id));
+                        // 🌟 优化 4：告别每次点击都去遍历几千条数据的 O(n) findIndex
+                        // 直接从预置的 Map 里 O(1) 取出原始索引！
+                        setRunIndex(runIdIndexMap.get(primaryRun.run_id) ?? -1);
                       }
                     }
                   }}
