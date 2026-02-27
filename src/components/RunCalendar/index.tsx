@@ -10,7 +10,6 @@ interface IRunCalendarProps {
   year: string; 
 }
 
-// 🌟 优化 5：使用 Set 替代 || 判断，扩展性与性能双收
 const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide']);
 const RUN_TYPES = new Set(['Run', 'Hike', 'TrailRun', 'Walk']);
 
@@ -18,18 +17,15 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
   const isTotal = year === 'Total';
   const displayYear = isTotal ? new Date().getFullYear() : Number(year);
 
-  // 🌟 优化 1 & 4：在最外层执行一次性 O(n) 数据预处理，彻底消灭下游所有的 new Date() 和 findIndex()
   const { normalizedRuns, runIdIndexMap } = useMemo(() => {
     const indexMap = new Map<number, number>();
     const normRuns = runs.map((r, i) => {
-      indexMap.set(r.run_id, i); // 建立 O(1) 的索引哈希表
+      indexMap.set(r.run_id, i); 
       
       const dateStr = r.start_date_local.slice(0, 10);
-      const month = Number(dateStr.slice(5, 7)) - 1; // 0-11
+      const month = Number(dateStr.slice(5, 7)) - 1; 
       
-      // 🌟 优化 2：强制使用 UTC 午夜时间戳，彻底免疫所有时区和夏令时差异！
       const utcDayTimestamp = new Date(`${dateStr}T00:00:00Z`).getTime();
-      // 精确时间戳，留给同一天多次运动排序用
       const exactTime = new Date(r.start_date_local).getTime();
 
       return { ...r, dateStr, month, utcDayTimestamp, exactTime };
@@ -38,16 +34,18 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
   }, [runs]);
 
   const [monthIndex, setMonthIndex] = useState<number>(new Date().getMonth());
+  const [direction, setDirection] = useState<number>(0);
 
   useEffect(() => {
     if (!isTotal && normalizedRuns.length > 0) {
       setMonthIndex(normalizedRuns[0].month);
+      setDirection(0);
     }
   }, [normalizedRuns, isTotal]);
 
   const globalStats = useMemo(() => {
     let totalDist = 0, rideDist = 0, runDist = 0;
-    const datesSet = new Set<number>(); // 存 utcDayTimestamp
+    const datesSet = new Set<number>(); 
 
     normalizedRuns.forEach(r => {
       totalDist += r.distance;
@@ -60,12 +58,10 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     let maxStreak = 0;
 
     if (activeDays > 0) {
-      // 🌟 优化 2：直接整数天数相减，无浮点误差，极其稳定
       const timestamps = Array.from(datesSet).sort((a, b) => a - b);
       maxStreak = 1;
       let currStreak = 1;
       for (let i = 1; i < timestamps.length; i++) {
-        // 86400000 是精确的一天的毫秒数，因为全是 UTC 午夜，除出来绝对是完美整数
         const diffDays = (timestamps[i] - timestamps[i - 1]) / 86400000;
         if (diffDays === 1) {
           currStreak++;
@@ -83,8 +79,83 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       maxStreak 
     };
   }, [normalizedRuns]);
+  // 🌟 1. 计算 Sparkline 基础数据 (引入高斯平滑算法，绝对丝滑)
+  const sparklineData = useMemo(() => {
+    let rawData: number[] = [];
+    
+    if (isTotal) {
+      const yearMap = new Map<number, number>();
+      normalizedRuns.forEach(r => {
+        const y = Number(r.dateStr.slice(0, 4));
+        yearMap.set(y, (yearMap.get(y) || 0) + r.distance);
+      });
+      if (yearMap.size === 0) return [];
+      const minYear = Math.min(...yearMap.keys());
+      const maxYear = Math.max(...yearMap.keys());
+      for (let y = minYear; y <= maxYear; y++) {
+        rawData.push(yearMap.get(y) || 0);
+      }
+    } else {
+      // 52 周数据
+      const weekData = new Array(52).fill(0);
+      normalizedRuns.forEach(r => {
+        const firstDay = new Date(displayYear, 0, 1).getTime();
+        const diffDays = Math.floor((r.exactTime - firstDay) / 86400000);
+        const week = Math.max(0, Math.min(51, Math.floor(diffDays / 7)));
+        weekData[week] += r.distance;
+      });
+      rawData = weekData;
+    }
 
-  // 🌟 优化 6：真正的大杀器！一次 O(n) 遍历同时完成：当月数据筛选、按天哈希分组、当月里程统计
+    // 🌟 核心魔法：1D 卷积平滑 (Moving Average Smoothing)
+    const smoothedData = rawData.map((val, idx, arr) => {
+      const prev = arr[idx - 1] !== undefined ? arr[idx - 1] : val;
+      const next = arr[idx + 1] !== undefined ? arr[idx + 1] : val;
+      // 权重分配：当前周占 50%，前后各占 25%
+      return prev * 0.25 + val * 0.5 + next * 0.25;
+    });
+
+    return smoothedData;
+  }, [normalizedRuns, isTotal, displayYear]);
+
+  // 🌟 2. 生成平滑曲线 (数学逻辑最清晰的完整版，拒绝压缩)
+  const sparklinePath = useMemo(() => {
+    if (sparklineData.length === 0) return '';
+    
+    const width = 200;
+    const height = 40;
+    const pad = 4; // 🌟 底部保护间距
+    
+    const max = Math.max(...sparklineData, 1); 
+    const points = sparklineData.map((d, i) => ({
+      x: (i / (sparklineData.length - 1 || 1)) * width,
+      y: height - pad - (d / max) * (height - 2 * pad)
+    }));
+
+    if (points.length === 1) {
+      return `M 0,${points[0].y} L ${width},${points[0].y}`;
+    }
+
+    let path = `M ${points[0].x},${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i === 0 ? 0 : i - 1];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
+      
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      let cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      let cp2y = p2.y - (p3.y - p1.y) / 6;
+      
+      // 🌟 核心修复：强制限制控制点，完美防溢出
+      cp1y = Math.max(pad, Math.min(height - pad, cp1y));
+      cp2y = Math.max(pad, Math.min(height - pad, cp2y));
+      
+      path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+    }
+    return path;
+  }, [sparklineData]);
   const { runsByDate, monthDetailStats } = useMemo(() => {
     const map = new Map<string, typeof normalizedRuns>();
     let total = 0, ride = 0, run = 0;
@@ -92,18 +163,15 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     if (!isTotal) {
       normalizedRuns.forEach(r => {
         if (r.month === monthIndex) {
-          // 1. 构建日历渲染所需的字典树
           if (!map.has(r.dateStr)) map.set(r.dateStr, []);
           map.get(r.dateStr)!.push(r);
           
-          // 2. 顺手统计当月数据
           total += r.distance;
           if (RIDE_TYPES.has(r.type)) ride += r.distance;
           else if (RUN_TYPES.has(r.type)) run += r.distance;
         }
       });
 
-      // 3. 将每天内部的数据按具体时间倒序排好（由于数据量极小，性能损耗可忽略）
       map.forEach(dayRuns => {
         if (dayRuns.length > 1) {
           dayRuns.sort((a, b) => b.exactTime - a.exactTime);
@@ -117,8 +185,15 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     };
   }, [normalizedRuns, monthIndex, isTotal]);
 
-  const handlePrevMonth = () => setMonthIndex(prev => Math.max(0, prev - 1));
-  const handleNextMonth = () => setMonthIndex(prev => Math.min(11, prev + 1));
+  // 🌟 翻页时记录方向
+  const handlePrevMonth = () => {
+    setDirection(-1);
+    setMonthIndex(prev => Math.max(0, prev - 1));
+  };
+  const handleNextMonth = () => {
+    setDirection(1);
+    setMonthIndex(prev => Math.min(11, prev + 1));
+  };
 
   const firstDayOfMonth = new Date(displayYear, monthIndex, 1).getDay();
   const daysInMonth = new Date(displayYear, monthIndex + 1, 0).getDate();
@@ -128,6 +203,29 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
   return (
     <div className={styles.boardContainer}>
       <div className={styles.globalSection}>
+        {sparklinePath && (
+          <svg key={year} className={styles.sparkline} viewBox="0 0 200 40" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+            <defs>
+              <linearGradient id="sparklineGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#32D74B" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#32D74B" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {/* 渐变填充区域 */}
+            <path 
+              d={`${sparklinePath} L 200,40 L 0,40 Z`} 
+              fill="url(#sparklineGrad)" 
+              stroke="none" 
+              className={styles.sparklineFill}
+            />
+            {/* 纯净发光线条 */}
+            <path 
+              d={sparklinePath} 
+              fill="none" 
+              className={styles.sparklineLine} 
+            />
+          </svg>
+        )}
         <div className={styles.globalMainStat}>
           <span className={styles.val}>{globalStats.totalDist.toFixed(1)}</span>
           <span className={styles.unit}>KM</span>
@@ -176,12 +274,16 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i}>{d}</div>)}
           </div>
           
-          <div className={styles.grid}>
+          {/* 🌟 核心魔法：使用 key 强制 React 重绘 DOM，配合 data-direction 传递给 CSS */}
+          <div 
+            key={`${displayYear}-${monthIndex}`} 
+            className={styles.grid}
+            data-direction={direction}
+          >
             {days.map((day, idx) => {
               if (!day) return <div key={`empty-${idx}`} className={styles.emptyDay} />;
               
               const dateStr = `${displayYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-              // 直接 O(1) 获取预先整理好的当天数据
               const dayRuns = runsByDate.get(dateStr) || [];
               const hasRun = dayRuns.length > 0;
               const primaryRun = hasRun ? dayRuns[0] : null;
@@ -195,7 +297,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
 
               return (
                 <div
-                  // 🌟 优化 3：抛弃 key={day}，使用绝对唯一的 dateStr，彻底消灭重渲染或动画复用隐患
                   key={dateStr}
                   data-tooltip={tooltipText} 
                   className={`${styles.dayCell} ${hasRun ? styles.hasRun : ''} ${isSelected ? styles.selected : ''}`}
@@ -206,8 +307,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                         setRunIndex(-1);
                       } else {
                         locateActivity([primaryRun.run_id]);
-                        // 🌟 优化 4：告别每次点击都去遍历几千条数据的 O(n) findIndex
-                        // 直接从预置的 Map 里 O(1) 取出原始索引！
                         setRunIndex(runIdIndexMap.get(primaryRun.run_id) ?? -1);
                       }
                     }

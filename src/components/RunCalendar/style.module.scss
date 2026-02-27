@@ -9,11 +9,12 @@
   color: #dfdfdf;
   user-select: none;
 }
-
 /* =========================================
    1. 顶部全局面板
 ========================================= */
 .globalSection {
+  position: relative; 
+  z-index: 1;       
   display: flex;
   flex-direction: column;
   align-items: center; 
@@ -110,6 +111,7 @@
   span {
     font-size: 0.85rem; 
     color: #dfdfdf;
+    opacity: 0.7;
     letter-spacing: 1px;
   }
 
@@ -148,10 +150,31 @@
   margin-bottom: 6px; 
 }
 
+/* 日历网格区域 */
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px; 
+  animation-duration: 0.25s; /* 动画速度 */
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); 
+  animation-fill-mode: forwards;
+
+  &[data-direction="1"] {
+    animation-name: slideInRight;
+  }
+  &[data-direction="-1"] {
+    animation-name: slideInLeft;
+  }
+}
+
+@keyframes slideInRight {
+  0% { opacity: 0; transform: translateX(12px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  0% { opacity: 0; transform: translateX(-12px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 
 .emptyDay {
@@ -281,6 +304,48 @@
 }
 
 
+/* =========================================
+   🌟 高级视觉：迷你趋势线 (Sparkline)
+========================================= */
+.sparkline {
+  position: absolute;
+  top: -5px; /* 曲线包围巨大的数字 */
+  left: 0;
+  width: 100%;
+  height: 85px; /* 高度覆盖数字区域 */
+  z-index: -1;  /* 沉入底层，绝不影响任何点击交互 */
+  pointer-events: none;
+}
+
+/* 底部消失的弥散渐变 */
+.sparklineFill {
+  animation: fadeUp 1s ease-out forwards;
+  transform-origin: bottom;
+}
+
+/* 极细的荧光丝带 */
+.sparklineLine {
+  stroke: #32D74B;
+  stroke-width: 1; /* 极细，保持克制 */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.2;
+  filter: drop-shadow(0 2px 6px rgba(50, 215, 75, 0.5)); /* 发光滤镜 */
+  
+  /* 线条像贪吃蛇一样顺滑生长的动画 */
+  stroke-dasharray: 400; /* viewBox width 的两倍足以覆盖 */
+  stroke-dashoffset: 400;
+  animation: drawLine 5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: scaleY(0.5); }
+  100% { opacity: 1; transform: scaleY(1); }
+}
 
 // ------------------------------------
 // 手机端响应式适配
