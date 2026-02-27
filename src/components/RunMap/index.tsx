@@ -34,7 +34,18 @@ interface IRunMapProps {
   geoData: FeatureCollection<RPGeometry>;
   thisYear: string;
 }
-
+// 🌟 辅助函数：计算两点之间的真实朝向角度 (Bearing)，让镜头永远看前方
+const calculateBearing = (start: number[], end: number[]) => {
+  const PI = Math.PI;
+  const lat1 = (start[1] * PI) / 180;
+  const lon1 = (start[0] * PI) / 180;
+  const lat2 = (end[1] * PI) / 180;
+  const lon2 = (end[0] * PI) / 180;
+  const dLon = lon2 - lon1;
+  const y = Math.sin(dLon) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  return ((Math.atan2(y, x) * 180) / PI + 360) % 360;
+};
 const RunMap = ({
   title,
   viewState,
@@ -59,44 +70,136 @@ const RunMap = ({
     })
   }
   // --- 轨迹动画逻辑开始 ---
-  const [animationPoints, setAnimationPoints] = useState(0);
+  const [animationProgress, setAnimationProgress] = useState(0);
   const [hoverInfo, setHoverInfo] = useState<{
     longitude: number;
     latitude: number;
     features: any[];
   } | null>(null);
 
+  // 🌟 上帝视角与第一人称丝滑运镜引擎 (终极抗干扰版)
   useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
     if (geoData && geoData.features && geoData.features.length === 1) {
-      const totalPoints = geoData.features[0].geometry.coordinates.length;
+      const points = geoData.features[0].geometry.coordinates as Coordinate[];
+      const totalPoints = points.length;
+      if (totalPoints < 2) return;
+
       let current = 0;
       let animationFrameId: number;
+      let isAnimating = true;
+
+      const startBearing = calculateBearing(points[0], points[Math.min(5, totalPoints - 1)]);
+      let currentBearing = startBearing; 
+
+      // 1. 俯冲入场：把 pitch 从 80 退回 70度，更像无人机跟随，避免贴地带来的怪异感
+      map.flyTo({
+        center: points[0] as [number, number],
+        bearing: startBearing,
+        pitch: 70,    
+        zoom: 16,   
+        duration: 2500, 
+        essential: true
+      });
 
       const animate = () => {
-        let step = totalPoints / 300;
-        if (step < 0.5) step = 0.5;
+        if (!isAnimating) return;
+
+        let step = totalPoints / 3000; 
+        if (step > 0.12) step = 0.12; 
+        if (step < 0.02) step = 0.02; 
 
         current += step;
-        if (current <= totalPoints) {
-          setAnimationPoints(Math.floor(current)); // 取整后截取坐标
+        if (current < totalPoints - 1) {
+          // 🌟 直接传递高精度浮点数给画线逻辑，彻底告别一段一段的卡顿！
+          setAnimationProgress(current);
+
+          const idx = Math.floor(current);
+          const remainder = current - idx;
+          const p1 = points[idx];
+          const p2 = points[idx + 1];
+          const lng = p1[0] + (p2[0] - p1[0]) * remainder;
+          const lat = p1[1] + (p2[1] - p1[1]) * remainder;
+
+          const lookAheadIdx = Math.min(idx + Math.floor(totalPoints / 15) + 1, totalPoints - 1);
+          const targetBearing = calculateBearing([lng, lat], points[lookAheadIdx]);
+          
+          let diff = targetBearing - currentBearing;
+          diff = ((diff + 540) % 360) - 180; 
+          currentBearing += diff * 0.05; 
+
+          map.easeTo({
+            center: [lng, lat],
+            bearing: currentBearing,
+            pitch: 70,   
+            zoom: 16,
+            duration: 32, 
+            easing: (t) => t
+          });
+
           animationFrameId = requestAnimationFrame(animate);
         } else {
-          setAnimationPoints(totalPoints); // 画完了
+          setAnimationProgress(totalPoints); 
+          
+          setTimeout(() => {
+            if (!isAnimating) return;
+            const lons = points.map(p => p[0]);
+            const lats = points.map(p => p[1]);
+            const bounds = [
+              [Math.min(...lons), Math.min(...lats)],
+              [Math.max(...lons), Math.max(...lats)]
+            ] as [[number, number], [number, number]];
+
+            map.fitBounds(bounds, {
+              padding: { top: 60, bottom: 60, left: 60, right: 60 },
+              pitch: 0,     
+              bearing: 0,   
+              duration: 3000 
+            });
+          }, 1000); 
         }
       };
-      animate();
 
-      return () => cancelAnimationFrame(animationFrameId);
+      setTimeout(() => {
+        if (isAnimating) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }, 2600);
+
+      return () => {
+        isAnimating = false;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      };
     } else {
-      // 全局概览模式：不播动画
-      setAnimationPoints(0);
+      setAnimationProgress(0);
+      if (map.getPitch() > 0) {
+        map.easeTo({ pitch: 0, bearing: 0, duration: 1500 });
+      }
     }
   }, [geoData]);
 
   // 根据动画进度，动态截取坐标点
-  const displayData = useMemo(() => {
-    if (geoData && geoData.features.length === 1 && animationPoints > 0) {
+const displayData = useMemo(() => {
+    if (geoData && geoData.features.length === 1 && animationProgress > 0) {
       const feature = geoData.features[0];
+      const points = feature.geometry.coordinates as Coordinate[];
+      const idx = Math.floor(animationProgress);
+      const remainder = animationProgress - idx;
+
+      // 截取已经跑完的完整点位
+      const coords = points.slice(0, idx + 1);
+
+      // 如果还没跑完最后一点，就算出当前镜头所在的精确坐标，追加到线条末端！
+      if (idx < points.length - 1 && remainder > 0) {
+        const p1 = points[idx];
+        const p2 = points[idx + 1];
+        const lng = p1[0] + (p2[0] - p1[0]) * remainder;
+        const lat = p1[1] + (p2[1] - p1[1]) * remainder;
+        coords.push([lng, lat]);
+      }
+
       return {
         ...geoData,
         features: [
@@ -104,14 +207,14 @@ const RunMap = ({
             ...feature,
             geometry: {
               ...feature.geometry,
-              coordinates: feature.geometry.coordinates.slice(0, animationPoints),
+              coordinates: coords,
             },
           },
         ],
       };
     }
-    return geoData; // 全局模式直接返回完整数据
-  }, [geoData, animationPoints]);
+    return geoData; 
+  }, [geoData, animationProgress]);
   // --- 轨迹动画逻辑结束 ---
   const mapRefCallback = useCallback(
     (ref: MapRef) => {
@@ -193,12 +296,19 @@ const RunMap = ({
       ref={mapRefCallback}
       mapboxAccessToken={MAPBOX_TOKEN}
       interactiveLayerIds={['runs2-hover-area']}
+      // 🌟 1. 核心修复：Fog 和 Terrain 是直接写在 Map 上的属性！
+      fog={{
+        range: [0.8, 3.5],
+        color: "#151516",
+        "horizon-blend": 0.15,
+        "star-intensity": 0.2
+      }}
+      terrain={isSingleRun ? { source: 'mapbox-dem', exaggeration: 2.5 } : undefined}
       onMouseMove={(e) => {          
         if (e.features && e.features.length > 0) {
           const validRuns = e.features.filter(
             (f) => f.properties && f.properties.start_date_local
           );
-
           if (validRuns.length > 0) {
             setHoverInfo({
               longitude: e.lngLat.lng,
@@ -212,62 +322,49 @@ const RunMap = ({
       }}
       onMouseLeave={() => setHoverInfo(null)}
     >
-      {/*<RunMapButtons changeYear={changeYear} thisYear={thisYear} />*/}
+      <Layer
+        id="3d-buildings"
+        source="composite"
+        source-layer="building"
+        filter={['==', 'extrude', 'true']}
+        type="fill-extrusion"
+        minzoom={14}
+        paint={{
+          'fill-extrusion-color': '#1C1C1E', 
+          'fill-extrusion-height': ['*', ['get', 'height'], 4.0],
+          'fill-extrusion-base': ['*', ['get', 'min_height'], 4.0],
+          'fill-extrusion-opacity': 0.85,
+        }}
+      />
+
+      <Source
+        id="mapbox-dem"
+        type="raster-dem"
+        url="mapbox://mapbox.mapbox-terrain-dem-v1"
+        tileSize={512}
+        maxzoom={14}
+      />
+
       <Source id="data" type="geojson" data={displayData}>
-        <Layer
-          id="province"
-          type="fill"
-          paint={{
-            'fill-color': PROVINCE_FILL_COLOR,
-            'fill-opacity': 0.2,
-          }}
-          filter={filterProvinces}
-        />
-        <Layer
-          id="countries"
-          type="fill"
-          paint={{
-            'fill-color': COUNTRY_FILL_COLOR,
-            'fill-opacity': 0.5,
-          }}
-          filter={filterCountries}
-        />
         <Layer
           id="runs2"
           type="line"
           paint={{
-            'line-color': ['get', 'color'], // 基础颜色保持不变
+            'line-color': ['get', 'color'],
             'line-width': isSingleRun ? 5 : (isBigMap && lights ? 1 : 2),
-            'line-width-transition': { duration: 0 },
-            
             'line-dasharray': dash,
             'line-opacity': isSingleRun || isBigMap || !lights ? 1 : LINE_OPACITY,
-            'line-opacity-transition': { duration: 0 },
             'line-blur': 1,
           }}
-          layout={{
-            'line-join': 'round',
-            'line-cap': 'round',
-          }}
+          layout={{ 'line-join': 'round', 'line-cap': 'round' }}
         />
-        <Layer
-          id="runs2-hover-area"
-          type="line"
-          paint={{
-            'line-width': 20, 
-            'line-opacity': 0
-          }}
-        />
+        <Layer id="runs2-hover-area" type="line" paint={{ 'line-width': 20, 'line-opacity': 0 }} />
       </Source>
+
       {isSingleRun && (
-        <RunMarker
-          startLat={startLat}
-          startLon={startLon}
-          endLat={endLat}
-          endLon={endLon}
-        />
+        <RunMarker startLat={startLat} startLon={startLon} endLat={endLat} endLon={endLon} />
       )}
-      {/*<span className={styles.runTitle}>{title}</span>*/}
+      
       <FullscreenControl style={fullscreenButton}/>
       {!PRIVACY_MODE && <LightsControl setLights={setLights} lights={lights}/>}
       <NavigationControl showCompass={false} position={'bottom-right'} style={{opacity: 0.3}}/>
