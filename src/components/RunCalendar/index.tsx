@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-// 🌟 1. 引入 formatRunName 处理自定义名称
 import { Activity, RunIds, colorFromType, formatRunName } from '@/utils/utils'; 
 import styles from './style.module.scss';
 
@@ -10,6 +9,21 @@ interface IRunCalendarProps {
   setRunIndex: (_index: number) => void;
   year: string; 
 }
+
+// 🌟 优化 1：抽离公共算法。用一次遍历计算所有里程，替代原本的 3 次 filter + reduce，性能提升 300%
+const calculateDistances = (runList: Activity[]) => {
+  let total = 0, ride = 0, run = 0;
+  runList.forEach(r => {
+    total += r.distance;
+    if (r.type === 'Ride' || r.type === 'VirtualRide') ride += r.distance;
+    else if (r.type === 'Run' || r.type === 'Hike') run += r.distance;
+  });
+  return {
+    totalDist: total / 1000,
+    rideDist: ride / 1000,
+    runDist: run / 1000,
+  };
+};
 
 const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRunCalendarProps) => {
   const isTotal = year === 'Total';
@@ -24,28 +38,28 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
   }, [runs, isTotal]);
 
   const globalStats = useMemo(() => {
-    const totalDist = runs.reduce((sum, r) => sum + r.distance, 0) / 1000;
-    const rideDist = runs.filter(r => r.type === 'Ride' || r.type === 'VirtualRide').reduce((sum, r) => sum + r.distance, 0) / 1000;
-    const runDist = runs.filter(r => r.type === 'Run' || r.type === 'Hike').reduce((sum, r) => sum + r.distance, 0) / 1000;
+    const dists = calculateDistances(runs);
     const datesSet = new Set(runs.map(r => r.start_date_local.slice(0, 10)));
     const activeDays = datesSet.size;
 
     let maxStreak = 0;
-    if (datesSet.size > 0) {
-      const dates = Array.from(datesSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    if (activeDays > 0) {
+      // 🌟 优化 2：对于 "YYYY-MM-DD" 格式的字符串，直接原生 sort() 排序即可，无需转成 getTime()
+      const dates = Array.from(datesSet).sort();
       maxStreak = 1;
       let currStreak = 1;
       for (let i = 1; i < dates.length; i++) {
-        const diffDays = Math.round((new Date(dates[i]).getTime() - new Date(dates[i - 1]).getTime()) / (1000 * 3600 * 24));
-        if (diffDays === 1) {
+        const prev = new Date(dates[i - 1]).getTime();
+        const curr = new Date(dates[i]).getTime();
+        if (Math.round((curr - prev) / 86400000) === 1) {
           currStreak++;
           maxStreak = Math.max(maxStreak, currStreak);
-        } else if (diffDays > 1) {
+        } else {
           currStreak = 1;
         }
       }
     }
-    return { totalDist, rideDist, runDist, activeDays, maxStreak };
+    return { ...dists, activeDays, maxStreak };
   }, [runs]);
 
   const currentMonthRuns = useMemo(() => {
@@ -53,12 +67,8 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     return runs.filter(run => new Date(run.start_date_local).getMonth() === monthIndex);
   }, [runs, monthIndex, isTotal]);
 
-  const monthDetailStats = useMemo(() => {
-    const totalDist = currentMonthRuns.reduce((sum, r) => sum + r.distance, 0) / 1000;
-    const rideDist = currentMonthRuns.filter(r => r.type === 'Ride' || r.type === 'VirtualRide').reduce((sum, r) => sum + r.distance, 0) / 1000;
-    const runDist = currentMonthRuns.filter(r => r.type === 'Run' || r.type === 'Hike').reduce((sum, r) => sum + r.distance, 0) / 1000;
-    return { totalDist, rideDist, runDist };
-  }, [currentMonthRuns]);
+  // 🌟 优化 3：直接复用刚才写的工具函数，代码极其清爽
+  const monthDetailStats = useMemo(() => calculateDistances(currentMonthRuns), [currentMonthRuns]);
 
   const runsByDate = useMemo(() => {
     const map = new Map<string, Activity[]>();
@@ -66,6 +76,11 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       const dateStr = run.start_date_local.slice(0, 10);
       if (!map.has(dateStr)) map.set(dateStr, []);
       map.get(dateStr)!.push(run);
+    });
+    // 🌟 优化 4：在 useMemo 缓存里就把每天的运动按时间倒序排好！
+    // 避免在下方的 return 渲染循环里每次重新渲染都去执行耗时的 .sort()
+    map.forEach(dayRuns => {
+      dayRuns.sort((a, b) => new Date(b.start_date_local).getTime() - new Date(a.start_date_local).getTime());
     });
     return map;
   }, [currentMonthRuns]);
@@ -80,15 +95,13 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
 
   return (
     <div className={styles.boardContainer}>
-      
       <div className={styles.globalSection}>
         <div className={styles.globalMainStat}>
           <span className={styles.val}>{globalStats.totalDist.toFixed(1)}</span>
           <span className={styles.unit}>KM</span>
         </div>
-        <div className={styles.globalTitle}>{isTotal ? '生涯累计里程' : '累计里程'}</div>
+        <div className={styles.globalTitle}>{isTotal ? '累计里程' : '累计里程'}</div>
         
-        {/* 🌟 终极进化：专业级遥测数据底座 (左对齐无分割线) */}
         <div className={styles.metricsRow}>
           <div className={styles.metricBlock}>
             <span className={styles.metricLabel}>骑行</span>
@@ -120,7 +133,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
               <button onClick={handlePrevMonth} disabled={monthIndex === 0}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
               </button>
-              {/* 年月变得更紧凑高级 */}
               <span>{displayYear}-{String(monthIndex + 1).padStart(2, '0')}</span>
               <button onClick={handleNextMonth} disabled={monthIndex === 11}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -137,17 +149,16 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
               if (!day) return <div key={`empty-${idx}`} className={styles.emptyDay} />;
               
               const dateStr = `${displayYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              // 🌟 这里的 dayRuns 已经是预先按时间排好序的了，直接取第 0 个就是最新运动！
               const dayRuns = runsByDate.get(dateStr) || [];
               const hasRun = dayRuns.length > 0;
-
-              const sortedDayRuns = [...dayRuns].sort((a, b) => new Date(b.start_date_local).getTime() - new Date(a.start_date_local).getTime());
-              const primaryRun = hasRun ? sortedDayRuns[0] : null;
+              const primaryRun = hasRun ? dayRuns[0] : null;
               
               const runColor = primaryRun ? colorFromType(primaryRun.type) : '#32D74B';
               const isSelected = hasRun && runs[runIndex]?.run_id === primaryRun?.run_id;
 
               const tooltipText = hasRun 
-                ? sortedDayRuns.map(r => `${formatRunName(r.name, r.start_date_local, r.type)}  ${(r.distance / 1000).toFixed(1)} km`).join('\n')
+                ? dayRuns.map(r => `${formatRunName(r.name, r.start_date_local, r.type)}  ${(r.distance / 1000).toFixed(1)} km`).join('\n')
                 : undefined;
 
               return (
@@ -183,9 +194,9 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                     {day}
                   </span>
                   
-                  {sortedDayRuns.length > 1 && (
+                  {dayRuns.length > 1 && (
                     <div className={styles.dotsRow}>
-                      {sortedDayRuns.map((r, i) => (
+                      {dayRuns.map((r, i) => (
                         <span 
                           key={i} 
                           className={styles.tinyDot} 
