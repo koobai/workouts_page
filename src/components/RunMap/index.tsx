@@ -77,10 +77,11 @@ const RunMap = ({
     features: any[];
   } | null>(null);
 
-  // 🌟 上帝视角与第一人称丝滑运镜引擎 (终极抗干扰版)
+  // 🌟 上帝视角与第一人称丝滑运镜引擎
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
+    map.stop();
 
     if (geoData && geoData.features && geoData.features.length === 1) {
       const points = geoData.features[0].geometry.coordinates as Coordinate[];
@@ -94,7 +95,6 @@ const RunMap = ({
       const startBearing = calculateBearing(points[0], points[Math.min(5, totalPoints - 1)]);
       let currentBearing = startBearing; 
 
-      // 1. 俯冲入场：把 pitch 从 80 退回 70度，更像无人机跟随，避免贴地带来的怪异感
       map.flyTo({
         center: points[0] as [number, number],
         bearing: startBearing,
@@ -107,13 +107,12 @@ const RunMap = ({
       const animate = () => {
         if (!isAnimating) return;
 
-        let step = totalPoints / 3000; 
-        if (step > 0.12) step = 0.12; 
-        if (step < 0.02) step = 0.02; 
+        let step = totalPoints / 1500;
+        if (step > 0.3) step = 0.3;
+        if (step < 0.06) step = 0.06;
 
         current += step;
         if (current < totalPoints - 1) {
-          // 🌟 直接传递高精度浮点数给画线逻辑，彻底告别一段一段的卡顿！
           setAnimationProgress(current);
 
           const idx = Math.floor(current);
@@ -158,7 +157,7 @@ const RunMap = ({
               bearing: 0,   
               duration: 3000 
             });
-          }, 1000); 
+          }, 1000); // 你刚改的完美 1 秒停顿
         }
       };
 
@@ -171,14 +170,18 @@ const RunMap = ({
       return () => {
         isAnimating = false;
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        // 🛑 核心防闪烁魔法 2：组件卸载或数据突变时，再次踩下刹车！
+        if (mapRef.current) mapRef.current.getMap()?.stop();
       };
     } else {
       setAnimationProgress(0);
-      if (map.getPitch() > 0) {
-        map.easeTo({ pitch: 0, bearing: 0, duration: 1500 });
+      // 如果切回全局年份时还在 3D 视角，快速且平滑地拉平
+      if (map.getPitch() > 0 || map.getBearing() !== 0) {
+        // 时间缩短到 800ms，让切年份的回退动作更加干脆，不拖泥带水
+        map.easeTo({ pitch: 0, bearing: 0, duration: 800 }); 
       }
     }
-  }, [geoData]);
+  }, [geoData]); // 监听 geoData 的变化
 
   // 根据动画进度，动态截取坐标点
 const displayData = useMemo(() => {
