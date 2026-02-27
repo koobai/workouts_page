@@ -1,34 +1,48 @@
 .boardContainer {
-  background: #1C1C1E;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 15px;
+  background: transparent;
+  border: none;
+  padding: 0;
   display: flex;
   flex-direction: column;
+  gap: 10px; 
   height: 100%;
   color: #dfdfdf;
   user-select: none;
 }
+
 /* =========================================
    1. 顶部全局面板
 ========================================= */
 .globalSection {
-  position: relative; 
-  z-index: 1;       
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: center; 
-  margin-bottom: 12px;
+  align-items: center;
+  background: #1C1C1E;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px 15px 16px;
+  /* 🌟 核心修复 2：防止内部趋势线渲染时溢出上边角 */
+  overflow: hidden; 
 }
+
+.globalTitle {
+  font-size: 0.75rem;
+  color: #8E8E93;
+  letter-spacing: 2px;
+  margin-bottom: 4px; 
+}
+
 .globalMainStat {
   display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 4px;
-  margin-bottom: 2px;
-  
+  margin-bottom: 12px; 
+
   .val {
-    font-size: 3.5rem; 
+    font-size: 3.5rem;
     font-weight: 800;
     font-style: italic;
     color: #32D74B;
@@ -36,36 +50,24 @@
     letter-spacing: -1px;
     text-shadow: 0 0 20px rgba(50, 215, 75, 0.15);
   }
-  
+
   .unit {
     font-size: 0.9rem;
     color: #8E8E93;
   }
 }
 
-/* 标签文字在下面兜底，更稳重 */
-.globalTitle {
-  font-size: 0.75rem;
-  color: #8E8E93;
-  letter-spacing: 2px;
-  margin-bottom: 12px;
-}
-
-/* 🌟 核心：专业遥测数据底座 🌟 */
 .metricsRow {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  padding: 14px 24px;
-  background: rgba(255, 255, 255, 0.02); 
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 0 10px; 
 }
 
 .metricBlock {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; 
+  align-items: center; 
   gap: 4px;
 }
 
@@ -91,9 +93,12 @@
    2. 底部日历区 
 ========================================= */
 .calendarSection {
-  flex: 1;
   display: flex;
   flex-direction: column;
+  background: #1C1C1E;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 15px;
 }
 
 .monthHeader {
@@ -109,7 +114,7 @@
   gap: 10px;
 
   span {
-    font-size: 0.85rem; 
+    font-size: 0.85rem;
     color: #dfdfdf;
     opacity: 0.7;
     letter-spacing: 1px;
@@ -133,35 +138,38 @@
       height: 16px;
     }
 
-    &:hover:not(:disabled) { color: #fff; }
-    &:disabled { opacity: 0.15; cursor: not-allowed; }
+    &:hover:not(:disabled) {
+      color: #fff;
+    }
+
+    &:disabled {
+      opacity: 0.15;
+      cursor: not-allowed;
+    }
   }
 }
 
-/* =========================================
-   日历网格区
-========================================= */
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-size: 0.7rem;
   color: #8E8E93;
-  margin-bottom: 6px; 
+  margin-bottom: 6px;
 }
 
-/* 日历网格区域 */
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px; 
-  animation-duration: 0.25s; /* 动画速度 */
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); 
+  gap: 2px;
+  animation-duration: 0.25s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
   animation-fill-mode: forwards;
 
   &[data-direction="1"] {
     animation-name: slideInRight;
   }
+
   &[data-direction="-1"] {
     animation-name: slideInLeft;
   }
@@ -178,7 +186,7 @@
 }
 
 .emptyDay {
-  min-height: 34px; /* 配合格子高度压缩 */
+  min-height: 34px;
 }
 
 .dayCell {
@@ -191,38 +199,34 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  overflow: visible; /* 🌟 新增：允许勋章溢出边界 */
+  overflow: visible;
   position: relative;
-  border: 1px solid transparent; 
+  border: 1px solid transparent;
   background-clip: padding-box;
 
   &.hasRun {
     cursor: pointer;
     background: rgba(255, 255, 255, 0.02);
-    &:hover { background: rgba(255, 255, 255, 0.08); }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
   }
 }
-@keyframes tooltipFade {
-  0% { opacity: 0; transform: translate(-50%, 6px); }
-  100% { opacity: 1; transform: translate(-50%, 0); }
-}
 
-/* 🌟 日期数字放大一点点，作为绝对的主体 */
 .dateNum {
   font-size: 13px;
   user-select: none;
   pointer-events: none;
 }
 
-/* 底部当月汇总 */
 .monthFooter {
-  margin-top: auto; 
-  padding-top: 12px;
+  padding-top: 16px;
   text-align: center;
   font-size: 0.65rem;
   color: #8E8E93;
   letter-spacing: 0.5px;
-  
+
   span {
     color: #dfdfdf;
     font-style: italic;
@@ -236,7 +240,135 @@
 }
 
 /* =========================================
-   3. Total 视图缺省页
+   3. 月度洞察双卡片
+========================================= */
+.monthlyInsights {
+  display: flex;
+  gap: 10px; 
+  align-items: stretch; 
+}
+
+.insightCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #1C1C1E;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  gap: 12px;
+}
+
+.insightHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 20px;
+}
+
+.insightTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #dfdfdf;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.titleTag {
+  font-size: 0.55rem;
+  color: #8E8E93;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 6px; 
+  border-radius: 4px;
+}
+
+.insightContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; 
+  gap: 4px;
+}
+
+.insightLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.55rem;
+  color: #666;
+  font-family: SF Pro Display, monospace;
+  margin-top: 2px;
+  
+  .zLabel {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+.punchCard {
+  display: flex;
+  justify-content: space-between;
+  height: 20px; 
+  width: 100%;
+  gap: 4px;
+}
+
+.barWrapper {
+  flex: 1;
+  height: 100%;
+  position: relative; 
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+
+  &:hover .punchHole {
+    filter: brightness(1.3);
+    transform: scaleY(1.1);
+  }
+}
+
+.punchHole {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.zoneChart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 20px; 
+  width: 100%;
+  gap: 4px;
+}
+
+.zoneCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  position: relative; 
+  cursor: pointer;
+
+  &:hover .zoneBar {
+    filter: brightness(1.2);
+  }
+}
+
+.zoneBar {
+  width: 100%;
+  max-width: 12px;
+  border-radius: 2px;
+  transition: height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* =========================================
+   4. Total 全局占位卡片
 ========================================= */
 .totalPlaceholder {
   flex: 1;
@@ -246,6 +378,11 @@
   justify-content: center;
   opacity: 0;
   animation: fadeIn 0.4s ease forwards;
+  background: #1C1C1E;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 15px;
+
   p {
     text-align: center;
     color: #8E8E93;
@@ -260,59 +397,32 @@
 }
 
 /* =========================================
-   🌟 灵魂注入：底部极简小圆点
-========================================= */
-.dotsRow {
-  position: absolute;
-  bottom: 3.5px; /* 紧贴格子底部边缘，绝不影响数字居中 */
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2.5px; /* 点与点之间的微小间距 */
-  pointer-events: none; /* 防止阻挡点击事件 */
-}
-
-.tinyDot {
-  width: 3.5px; /* 极小的尺寸，保证精致感 */
-  height: 3.5px;
-  border-radius: 50%;
-  opacity: 0.95;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5); /* 极弱的黑影，确保在任何背景色下都清晰可见 */
-}
-
-
-/* =========================================
-   🌟 高级视觉：迷你趋势线 (Sparkline)
+   5. 背景呼吸曲线 (Sparkline)
 ========================================= */
 .sparkline {
   position: absolute;
-  top: -5px; /* 曲线包围巨大的数字 */
+  /* 🌟 核心修复 3：原本是 -5px，现在调为 8px，给最高峰让出绝佳的呼吸间距 */
+  top: 8px;
   left: 0;
   width: 100%;
-  height: 85px; /* 高度覆盖数字区域 */
-  z-index: -1;  /* 沉入底层，绝不影响任何点击交互 */
+  height: 85px;
+  z-index: -1;
   pointer-events: none;
 }
 
-/* 底部消失的弥散渐变 */
 .sparklineFill {
   animation: fadeUp 1s ease-out forwards;
   transform-origin: bottom;
 }
 
-/* 极细的荧光丝带 */
 .sparklineLine {
   stroke: #32D74B;
-  stroke-width: 1; /* 极细，保持克制 */
+  stroke-width: 1;
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.2;
-  filter: drop-shadow(0 2px 6px rgba(50, 215, 75, 0.5)); /* 发光滤镜 */
-  
-  /* 线条像贪吃蛇一样顺滑生长的动画 */
-  stroke-dasharray: 400; /* viewBox width 的两倍足以覆盖 */
+  filter: drop-shadow(0 2px 6px rgba(50, 215, 75, 0.5));
+  stroke-dasharray: 400;
   stroke-dashoffset: 400;
   animation: drawLine 5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
@@ -326,17 +436,8 @@
   100% { opacity: 1; transform: scaleY(1); }
 }
 
-// ------------------------------------
-// 手机端响应式适配
-// ------------------------------------
-@media (max-width: 768px) {
-.boardContainer  { 
-    display: none;
-  }
-}
-
 /* =========================================
-   🌟 全新高级悬浮卡片
+   6. 通用高级富文本悬浮提示 (Tooltip)
 ========================================= */
 .runTooltip {
   visibility: hidden;
@@ -357,6 +458,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
 
   .ttList {
     display: flex;
@@ -370,11 +472,24 @@
     align-items: center;
     gap: 20px;
     font-size: 0.85rem;
-    .ttVal { 
+
+    .ttName {
+      font-weight: 500;
+    }
+
+    .ttVal {
       color: #dfdfdf;
-      small { font-size: 0.65rem; color: #8E8E93; margin-left: 2px; }
+      font-family: SF Pro Display, monospace;
+      font-weight: 700;
+
+      small {
+        font-size: 0.65rem;
+        color: #8E8E93;
+        margin-left: 2px;
+      }
     }
   }
+
   .ttAchievement {
     padding-top: 8px;
     margin-top: 2px;
@@ -383,22 +498,76 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-weight: 800;
+    
+    .ttVal { font-family: SF Pro Display, monospace; }
   }
 }
 
-.dayCell:hover .runTooltip {
+.dayCell:hover .runTooltip,
+.barWrapper:hover .runTooltip,
+.zoneCol:hover .runTooltip {
   visibility: visible;
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
 
+/* =========================================
+   7. 成就系统勋章 (Badges) & 其他杂项
+========================================= */
 .maxDay {
   z-index: 2;
   transition: transform 0.3s ease;
-  background: transparent !important; 
+  background: transparent !important;
   box-shadow: none !important;
+
   &:hover {
     transform: translateY(-2px);
     background: transparent !important;
+  }
+}
+
+.yearlyBadge,
+.monthlyBadge {
+  width: 24px;
+  height: 24px;
+  z-index: 5;
+  pointer-events: none;
+  color: transparent;
+  margin-bottom: 2px;
+  animation: badgePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.yearlyBadge { filter: drop-shadow(0 2px 6px rgba(245, 158, 11, 0.4)) !important; }
+.monthlyBadge { filter: drop-shadow(0 2px 6px rgba(10, 132, 255, 0.4)); }
+
+@keyframes badgePopIn {
+  0% { opacity: 0; transform: scale(0) rotate(-45deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.dotsRow {
+  position: absolute;
+  bottom: 3.5px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5px;
+  pointer-events: none;
+}
+
+.tinyDot {
+  width: 3.5px;
+  height: 3.5px;
+  border-radius: 50%;
+  opacity: 0.95;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 768px) {
+  .boardContainer {
+    display: none;
   }
 }

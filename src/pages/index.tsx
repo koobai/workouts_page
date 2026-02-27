@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import Layout from '@/components/Layout';
 import RunMap from '@/components/RunMap';
@@ -25,27 +25,74 @@ const Index = () => {
   const { activities, thisYear } = useActivities();
   const [year, setYear] = useState(thisYear);
   const [runIndex, setRunIndex] = useState(-1);
+  
   const [runs, setActivity] = useState(
     filterAndSortRuns(activities, year, filterYearRuns, sortDateFunc)
   );
+  
   const [title, setTitle] = useState('');
   const [geoData, setGeoData] = useState(geoJsonForRuns(runs));
-  // for auto zoom
   const bounds = getBoundsForGeoData(geoData);
-  const [intervalId, setIntervalId] = useState<number>();
+
+  const intervalRef = useRef<number>();
 
   const [viewState, setViewState] = useState<IViewState>({
     ...bounds,
   });
+
+  const bentoRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setIsSticky] = useState(false);
+
+  // 滚动吸顶 + rAF 性能节流
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (bentoRef.current) {
+            const rect = bentoRef.current.getBoundingClientRect();
+            setIsSticky(rect.bottom < 80);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 🌟 拨乱反正：恢复最稳健的重绘策略！
+  // 因为地图吸顶有 0.4s 的 CSS 动画，所以必须用 setTimeout 在不同阶段强制 Mapbox 刷新，解决右侧留白。
+  useEffect(() => {
+    // 1. 状态改变瞬间触发
+    window.dispatchEvent(new Event('resize'));
+    
+    // 2. 动画初期触发
+    const timer1 = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+
+    // 3. 动画中后期/年份切换 DOM 挂载完毕后触发兜底
+    const timer2 = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 250);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [isSticky, year]); // 严格监听吸顶状态和年份变化
 
   const changeByItem = (
     item: string,
     name: string,
     func: (_run: Activity, _value: string) => boolean
   ) => {
-    scrollToMap();
+    if (!isSticky) scrollToMap();
+    
     if (name != 'Year') {
-      setYear(thisYear)
+      setYear(thisYear);
     }
     setActivity(filterAndSortRuns(activities, item, func, sortDateFunc));
     setRunIndex(-1);
@@ -53,101 +100,87 @@ const Index = () => {
   };
 
   const changeYear = (y: string) => {
-    // default year
     setYear(y);
 
     if ((viewState.zoom ?? 0) > 3 && bounds) {
-      setViewState({
-        ...bounds,
-      });
+      setViewState({ ...bounds });
     }
 
     changeByItem(y, 'Year', filterYearRuns);
-    clearInterval(intervalId);
+    if (intervalRef.current) window.clearInterval(intervalRef.current);
   };
 
   const locateActivity = (runIds: RunIds) => {
     const ids = new Set(runIds);
-
     const selectedRuns = !runIds.length
       ? runs
       : runs.filter((r: any) => ids.has(r.run_id));
 
-    if (!selectedRuns.length) {
-      return;
-    }
+    if (!selectedRuns.length) return;
 
-    const lastRun = selectedRuns.sort(sortDateFunc)[0];
+    const lastRun = selectedRuns.reduce((acc: Activity, curr: Activity) => 
+      sortDateFunc(acc, curr) <= 0 ? acc : curr
+    );
 
-    if (!lastRun) {
-      return;
-    }
+    if (!lastRun) return;
+
     setGeoData(geoJsonForRuns(selectedRuns));
     setTitle(titleForShow(lastRun));
-    clearInterval(intervalId);
-    scrollToMap();
+    
+    if (intervalRef.current) window.clearInterval(intervalRef.current);
+    
+    if (!isSticky) scrollToMap();
   };
 
   useEffect(() => {
-    setViewState({
-      ...bounds,
-    });
+    setViewState({ ...bounds });
   }, [geoData]);
 
   useEffect(() => {
     const runsNum = runs.length;
-    // maybe change 20 ?
     const sliceNum = runsNum >= 10 ? runsNum / 10 : 1;
     let i = sliceNum;
-    const id = setInterval(() => {
+    
+    const id = window.setInterval(() => {
       if (i >= runsNum) {
-        clearInterval(id);
+        window.clearInterval(id);
       }
-
       const tempRuns = runs.slice(0, i);
       setGeoData(geoJsonForRuns(tempRuns));
       i += sliceNum;
     }, 10);
-    setIntervalId(id);
+    
+    intervalRef.current = id;
+
+    return () => window.clearInterval(id);
   }, [runs]);
 
   useEffect(() => {
-    if (year !== 'Total') {
-      return;
-    }
+    if (year !== 'Total') return;
 
     let svgStat = document.getElementById('svgStat');
-    if (!svgStat) {
-      return;
-    }
+    if (!svgStat) return;
 
     const handleClick = (e: Event) => {
       const target = e.target as HTMLElement;
       if (target.tagName.toLowerCase() === 'path') {
-        // Use querySelector to get the <desc> element and the <title> element.
         const descEl = target.querySelector('desc');
         if (descEl) {
-          // If the runId exists in the <desc> element, it means that a running route has been clicked.
           const runId = Number(descEl.innerHTML);
-          if (!runId) {
-            return;
-          }
+          if (!runId) return;
           locateActivity([runId]);
           return;
         }
 
         const titleEl = target.querySelector('title');
         if (titleEl) {
-          // If the runDate exists in the <title> element, it means that a date square has been clicked.
           const [runDate] = titleEl.innerHTML.match(/\d{4}-\d{1,2}-\d{1,2}/) || [
             `${+thisYear + 1}`,
           ];
           const runIDsOnDate = runs
             .filter((r) => r.start_date_local.slice(0, 10) === runDate)
             .map((r) => r.run_id);
-          if (!runIDsOnDate.length) {
-            return;
-          }
+          if (!runIDsOnDate.length) return;
           locateActivity(runIDsOnDate);
         }
       }
@@ -157,9 +190,11 @@ const Index = () => {
       svgStat && svgStat.removeEventListener('click', handleClick);
     };
   }, [year]);
+  
   const yearArray = Array.from(new Set(activities.map((a: Activity) => a.start_date_local.slice(0, 4))));
   yearArray.sort((a, b) => b.localeCompare(a)); 
   yearArray.push('Total');
+  
   return (
     <Layout>
         <div className="pagetitle">
@@ -176,21 +211,22 @@ const Index = () => {
             </li>
           ))}
         </ul>
-        {/* 🌟 左地图 + 右日历看板 🌟 */}
-        <div className="bento-hero">
+        
+        <div className="bento-hero" ref={bentoRef}>
           
-          <div className="page-map bento-card-map">
-            <RunMap
-              title={title}
-              viewState={viewState}
-              geoData={geoData}
-              setViewState={setViewState}
-              changeYear={changeYear}
-              thisYear={year}
-            />
+          <div className="bento-map-placeholder">
+            <div className={`page-map bento-card-map ${isSticky ? 'sticky-map' : ''}`}>
+              <RunMap
+                title={title}
+                viewState={viewState}
+                geoData={geoData}
+                setViewState={setViewState}
+                changeYear={changeYear}
+                thisYear={year}
+              />
+            </div>
           </div>
 
-          {/* 🌟 传入 year 属性给日历看板 */}
           <div className="bento-calendar-board">
             <RunCalendar
               runs={runs}
