@@ -1,21 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import Layout from '@/components/Layout';
-import LocationStat from '@/components/LocationStat';
 import RunMap from '@/components/RunMap';
 import RunTable from '@/components/RunTable';
 import SVGStat from '@/components/SVGStat';
-import YearsStat from '@/components/YearsStat';
 import useActivities from '@/hooks/useActivities';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
-import { IS_CHINESE } from '@/utils/const';
+import RunCalendar from '@/components/RunCalendar';
 import {
   Activity,
   IViewState,
   filterAndSortRuns,
-  filterCityRuns,
-  filterTitleRuns,
-  filterTypeRuns,
   filterYearRuns,
   geoJsonForRuns,
   getBoundsForGeoData,
@@ -70,34 +65,6 @@ const Index = () => {
     changeByItem(y, 'Year', filterYearRuns);
     clearInterval(intervalId);
   };
-
-  const changeCity = (city: string) => {
-    changeByItem(city, 'City', filterCityRuns);
-  };
-
-  const changeTitle = (title: string) => {
-    changeByItem(title, 'Title', filterTitleRuns);
-  };
-
-  const changeType = (type: string) => {
-    changeByItem(type, 'Type', filterTypeRuns);
-  };
-
-  const changeTypeInYear = (year:string, type: string) => {
-    scrollToMap();
-    // type in year, filter year first, then type
-    if(year != 'Total'){
-      setYear(year);
-      setActivity(filterAndSortRuns(activities, year, filterYearRuns, sortDateFunc, type, filterTypeRuns));
-    }
-    else {
-      setYear(thisYear);
-      setActivity(filterAndSortRuns(activities, type, filterTypeRuns, sortDateFunc));
-    }
-    setRunIndex(-1);
-    setTitle(`${year} ${type} Type Heatmap`);
-  };
-
 
   const locateActivity = (runIds: RunIds) => {
     const ids = new Set(runIds);
@@ -190,38 +157,6 @@ const Index = () => {
       svgStat && svgStat.removeEventListener('click', handleClick);
     };
   }, [year]);
-// --- 👇 完整版数据计算面板 👇 ---
-  // 1. 基础数据
-  const totalDistance = (runs.reduce((acc, run) => acc + (run.distance || 0), 0) / 1000).toFixed(1);
-  const activeDays = new Set(runs.map(r => r.start_date_local.slice(0, 10))).size;
-
-  // 2. 分类里程 (骑行 vs 跑走)
-  const rideDistance = (runs.filter(r => r.type === 'Ride' || r.type === 'VirtualRide').reduce((acc, run) => acc + (run.distance || 0), 0) / 1000).toFixed(1);
-  const hikeRunDistance = (runs.filter(r => r.type === 'Run' || r.type === 'Hike').reduce((acc, run) => acc + (run.distance || 0), 0) / 1000).toFixed(1);
-
-  // 3. 核心算法：计算最长连续运动天数 (Streak)
-  let longestStreak = 0;
-  if (runs.length > 0) {
-    // 提取所有日期并去重排序 (从小到大)
-    const dates = Array.from(new Set(runs.map(r => r.start_date_local.slice(0, 10))))
-      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    
-    longestStreak = 1;
-    let currentStreak = 1;
-    for (let i = 1; i < dates.length; i++) {
-      const prev = new Date(dates[i - 1]);
-      const curr = new Date(dates[i]);
-      // 计算两个日期间隔天数
-      const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 3600 * 24));
-      if (diffDays === 1) {
-        currentStreak++;
-        longestStreak = Math.max(longestStreak, currentStreak);
-      } else if (diffDays > 1) {
-        currentStreak = 1; // 断签了，重新计算
-      }
-    }
-  }
-  // --- 👆 计算结束 👆 ---
   const yearArray = Array.from(new Set(activities.map((a: Activity) => a.start_date_local.slice(0, 4))));
   yearArray.sort((a, b) => b.localeCompare(a)); 
   yearArray.push('Total');
@@ -241,39 +176,31 @@ const Index = () => {
             </li>
           ))}
         </ul>
+        {/* 🌟 左地图 + 右日历看板 🌟 */}
         <div className="bento-hero">
+          
           <div className="page-map bento-card-map">
-          <RunMap
-            title={title}
-            viewState={viewState}
-            geoData={geoData}
-            setViewState={setViewState}
-            changeYear={changeYear}
-            thisYear={year}
-          />
-        </div>
-        <div className="bento-dashboard">
-          <div className="bento-card bento-primary">
-            <div className="bento-value">{totalDistance}<span className="bento-unit">KM</span></div>
-            <span className="bento-label">累计里程</span>
+            <RunMap
+              title={title}
+              viewState={viewState}
+              geoData={geoData}
+              setViewState={setViewState}
+              changeYear={changeYear}
+              thisYear={year}
+            />
           </div>
-          <div className="bento-card bento-sub">
-             <div className="bento-data"><span className="bento-value-sm">{rideDistance}</span><span className="bento-unit-sm">KM</span></div>
-             <span className="bento-label-sm">骑行</span>
+
+          {/* 🌟 传入 year 属性给日历看板 */}
+          <div className="bento-calendar-board">
+            <RunCalendar
+              runs={runs}
+              locateActivity={locateActivity}
+              runIndex={runIndex}
+              setRunIndex={setRunIndex}
+              year={year} 
+            />
           </div>
-          <div className="bento-card bento-sub">
-             <div className="bento-data"><span className="bento-value-sm">{hikeRunDistance}</span><span className="bento-unit-sm">KM</span></div>
-             <span className="bento-label-sm">跑走</span>
-          </div>
-           <div className="bento-card bento-sub">
-             <div className="bento-data"><span className="bento-value-sm">{activeDays}</span><span className="bento-unit-sm">天</span></div>
-             <span className="bento-label-sm">出勤</span>
-          </div>
-           <div className="bento-card bento-sub">
-             <div className="bento-data"><span className="bento-value-sm">{longestStreak}</span><span className="bento-unit-sm">天</span></div>
-             <span className="bento-label-sm">最长连续</span>
-          </div>
-        </div>
+
         </div>
         <div className='page-nrong bento-card-table'>
           {year === 'Total' ? (
