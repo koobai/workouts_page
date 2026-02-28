@@ -430,35 +430,6 @@
 }
 
 /* =========================================
-   5. Total 全局占位卡片
-========================================= */
-.totalPlaceholder {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  animation: fadeIn 0.4s ease forwards;
-  background: #1C1C1E;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 15px;
-
-  p {
-    text-align: center;
-    color: #8E8E93;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    margin: 0;
-  }
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-/* =========================================
    6. 背景呼吸曲线 (Sparkline)
 ========================================= */
 .sparkline {

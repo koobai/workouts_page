@@ -3,7 +3,6 @@ import { Analytics } from '@vercel/analytics/react';
 import Layout from '@/components/Layout';
 import RunMap from '@/components/RunMap';
 import RunTable from '@/components/RunTable';
-import SVGStat from '@/components/SVGStat';
 import useActivities from '@/hooks/useActivities';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
 import RunCalendar from '@/components/RunCalendar';
@@ -33,7 +32,6 @@ const Index = () => {
   const [title, setTitle] = useState('');
   const [geoData, setGeoData] = useState(geoJsonForRuns(runs));
   const bounds = getBoundsForGeoData(geoData);
-
   const intervalRef = useRef<number>();
 
   const [viewState, setViewState] = useState<IViewState>({
@@ -43,7 +41,12 @@ const Index = () => {
   const bentoRef = useRef<HTMLDivElement>(null);
   const [isSticky, setIsSticky] = useState(false);
 
-  // 滚动吸顶 + rAF 性能节流
+  // 🌟 地图重绘触发器：解决 Sticky 切换导致的 Canvas 留白
+  const triggerMapResize = () => {
+    window.dispatchEvent(new Event('resize'));
+  };
+
+  // 滚动吸顶逻辑 + 性能节流
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -51,7 +54,11 @@ const Index = () => {
         window.requestAnimationFrame(() => {
           if (bentoRef.current) {
             const rect = bentoRef.current.getBoundingClientRect();
-            setIsSticky(rect.bottom < 80);
+            const nextSticky = rect.bottom < 80;
+            if (nextSticky !== isSticky) {
+              setIsSticky(nextSticky);
+              requestAnimationFrame(triggerMapResize);
+            }
           }
           ticking = false;
         });
@@ -60,29 +67,16 @@ const Index = () => {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isSticky]);
 
-  // 🌟 拨乱反正：恢复最稳健的重绘策略！
-  // 因为地图吸顶有 0.4s 的 CSS 动画，所以必须用 setTimeout 在不同阶段强制 Mapbox 刷新，解决右侧留白。
+  // 使用 ResizeObserver 监听 Bento 容器尺寸变化
   useEffect(() => {
-    // 1. 状态改变瞬间触发
-    window.dispatchEvent(new Event('resize'));
-    
-    // 2. 动画初期触发
-    const timer1 = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 50);
-
-    // 3. 动画中后期/年份切换 DOM 挂载完毕后触发兜底
-    const timer2 = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 250);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, [isSticky, year]); // 严格监听吸顶状态和年份变化
+    const node = bentoRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver(() => triggerMapResize());
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const changeByItem = (
     item: string,
@@ -90,7 +84,6 @@ const Index = () => {
     func: (_run: Activity, _value: string) => boolean
   ) => {
     if (!isSticky) scrollToMap();
-    
     if (name != 'Year') {
       setYear(thisYear);
     }
@@ -101,13 +94,12 @@ const Index = () => {
 
   const changeYear = (y: string) => {
     setYear(y);
-
     if ((viewState.zoom ?? 0) > 3 && bounds) {
       setViewState({ ...bounds });
     }
-
     changeByItem(y, 'Year', filterYearRuns);
     if (intervalRef.current) window.clearInterval(intervalRef.current);
+    triggerMapResize();
   };
 
   const locateActivity = (runIds: RunIds) => {
@@ -126,9 +118,7 @@ const Index = () => {
 
     setGeoData(geoJsonForRuns(selectedRuns));
     setTitle(titleForShow(lastRun));
-    
     if (intervalRef.current) window.clearInterval(intervalRef.current);
-    
     if (!isSticky) scrollToMap();
   };
 
@@ -140,7 +130,6 @@ const Index = () => {
     const runsNum = runs.length;
     const sliceNum = runsNum >= 10 ? runsNum / 10 : 1;
     let i = sliceNum;
-    
     const id = window.setInterval(() => {
       if (i >= runsNum) {
         window.clearInterval(id);
@@ -149,51 +138,12 @@ const Index = () => {
       setGeoData(geoJsonForRuns(tempRuns));
       i += sliceNum;
     }, 10);
-    
     intervalRef.current = id;
-
     return () => window.clearInterval(id);
   }, [runs]);
-
-  useEffect(() => {
-    if (year !== 'Total') return;
-
-    let svgStat = document.getElementById('svgStat');
-    if (!svgStat) return;
-
-    const handleClick = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName.toLowerCase() === 'path') {
-        const descEl = target.querySelector('desc');
-        if (descEl) {
-          const runId = Number(descEl.innerHTML);
-          if (!runId) return;
-          locateActivity([runId]);
-          return;
-        }
-
-        const titleEl = target.querySelector('title');
-        if (titleEl) {
-          const [runDate] = titleEl.innerHTML.match(/\d{4}-\d{1,2}-\d{1,2}/) || [
-            `${+thisYear + 1}`,
-          ];
-          const runIDsOnDate = runs
-            .filter((r) => r.start_date_local.slice(0, 10) === runDate)
-            .map((r) => r.run_id);
-          if (!runIDsOnDate.length) return;
-          locateActivity(runIDsOnDate);
-        }
-      }
-    }
-    svgStat.addEventListener('click', handleClick);
-    return () => {
-      svgStat && svgStat.removeEventListener('click', handleClick);
-    };
-  }, [year]);
   
   const yearArray = Array.from(new Set(activities.map((a: Activity) => a.start_date_local.slice(0, 4))));
   yearArray.sort((a, b) => b.localeCompare(a)); 
-  yearArray.push('Total');
   
   return (
     <Layout>
@@ -213,7 +163,6 @@ const Index = () => {
         </ul>
         
         <div className="bento-hero" ref={bentoRef}>
-          
           <div className="bento-map-placeholder">
             <div className={`page-map bento-card-map ${isSticky ? 'sticky-map' : ''}`}>
               <RunMap
@@ -236,20 +185,16 @@ const Index = () => {
               year={year} 
             />
           </div>
-
         </div>
-        <div className='page-nrong bento-card-table'>
-          {year === 'Total' ? (
-            <SVGStat />
-          ) : (
-            <RunTable
-              runs={runs}
-              locateActivity={locateActivity}
-              setActivity={setActivity}
-              runIndex={runIndex}
-              setRunIndex={setRunIndex}
-            />
-          )}
+
+        <div className="page-nrong bento-card-table">
+          <RunTable
+            runs={runs}
+            locateActivity={locateActivity}
+            setActivity={setActivity}
+            runIndex={runIndex}
+            setRunIndex={setRunIndex}
+          />
         </div>
       <Analytics />
     </Layout>

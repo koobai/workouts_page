@@ -10,24 +10,36 @@ interface IRunCalendarProps {
   year: string;
 }
 
-// 🌟 动态体重基准与目标设定
 const CURRENT_WEIGHT_KG = 75; 
-const GOAL_KCAL = 8000; // 每月目标燃烧大卡
-const GOAL_FAT = 1.0;   // 每月目标燃烧纯脂(kg)
-const GOAL_TEA = 15;    // 每月目标抵消奶茶(杯)
+const GOAL_KCAL = 8000; 
+const GOAL_FAT = 1.0;   
+const GOAL_TEA = 15;    
 
 const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide']);
 const RUN_TYPES = new Set(['Run', 'Hike', 'TrailRun', 'Walk']);
 
-const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRunCalendarProps) => {
-  const isTotal = year === 'Total';
-  const displayYear = isTotal ? new Date().getFullYear() : Number(year);
+const calculateGauges = (mCalories: number) => {
+  const RADIUS = 40; 
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  const GAUGE_LENGTH = CIRCUMFERENCE * 0.75; 
 
-  const [monthIndex, setMonthIndex] = useState<number>(new Date().getMonth());
-  const [direction, setDirection] = useState<number>(0);
+  const gauges = [
+    { key: 'kcal', value: Math.round(mCalories), unit: 'KCAL', label: '热量消耗', color: '#FF8A00', progress: GAUGE_LENGTH * Math.min(mCalories / GOAL_KCAL, 1) },
+    { key: 'fat', value: (mCalories / 7700).toFixed(2), unit: 'KG', label: '燃烧脂肪', color: '#32D74B', progress: GAUGE_LENGTH * Math.min((mCalories / 7700) / GOAL_FAT, 1) },
+    { key: 'tea', value: Math.floor(mCalories / 500), unit: 'CUPS', label: '抵消奶茶', color: '#00C7BE', progress: GAUGE_LENGTH * Math.min(Math.floor(mCalories / 500) / GOAL_TEA, 1) }
+  ];
 
-  const { normalizedRuns, runIdIndexMap } = useMemo(() => {
+  return { gauges, gaugeConstants: { radius: RADIUS, circumference: CIRCUMFERENCE, gaugeLength: GAUGE_LENGTH } };
+};
+
+// 🌟 卸下了 isTotal 判断的沉重枷锁，只为精准年份而生的极速数据引擎
+function useRunDataEngine(runs: Activity[], year: string, monthIndex: number) {
+  const displayYear = Number(year);
+
+  const { normalizedRuns, runIdIndexMap, runsByMonth } = useMemo(() => {
     const indexMap = new Map<number, number>();
+    const monthMap = new Map<number, { runs: any[], runsByDate: Map<string, any[]> }>();
+    
     const normRuns = runs.map((r, i) => {
       indexMap.set(r.run_id, i);
       const dateStr = r.start_date_local.slice(0, 10);
@@ -35,28 +47,33 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       const cleanDateString = r.start_date_local.replace(' ', 'T');
       
       const utcDayTimestamp = new Date(`${dateStr}T00:00:00Z`).getTime();
-      const exactDateObj = new Date(cleanDateString);
-      const exactTime = exactDateObj.getTime();
-      const hour = exactDateObj.getHours(); 
+      const exactTime = new Date(cleanDateString).getTime();
+      const hour = new Date(cleanDateString).getHours(); 
       
       return { ...r, dateStr, month, utcDayTimestamp, exactTime, hour };
     });
-    return { normalizedRuns: normRuns, runIdIndexMap: indexMap };
-  }, [runs]);
 
-  useEffect(() => {
-    if (!isTotal && normalizedRuns.length > 0) {
-      setMonthIndex(normalizedRuns[0].month);
-      setDirection(0);
-    }
-  }, [normalizedRuns, isTotal]);
+    normRuns.forEach(r => {
+      if (!monthMap.has(r.month)) {
+        monthMap.set(r.month, { runs: [], runsByDate: new Map() });
+      }
+      const m = monthMap.get(r.month)!;
+      m.runs.push(r);
+      if (!m.runsByDate.has(r.dateStr)) m.runsByDate.set(r.dateStr, []);
+      m.runsByDate.get(r.dateStr)!.push(r);
+    });
+
+    return { normalizedRuns: normRuns, runIdIndexMap: indexMap, runsByMonth: monthMap };
+  }, [runs]);
 
   const globalData = useMemo(() => {
     let totalDist = 0, rideDist = 0, runDist = 0;
     const datesSet = new Set<number>();
-    const yearMap = new Map<number, number>();
-    const weekData = new Array(52).fill(0);
-    const firstDay = new Date(displayYear, 0, 1).getTime();
+    
+    const firstDayUTC = Date.UTC(displayYear, 0, 1);
+    const lastDayUTC = Date.UTC(displayYear, 11, 31);
+    const totalWeeks = Math.ceil((lastDayUTC - firstDayUTC) / 86400000 / 7) + 1;
+    const weekData = new Array(totalWeeks).fill(0);
     const distMap = new Map<string, number>();
 
     normalizedRuns.forEach(r => {
@@ -65,18 +82,10 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       else if (RUN_TYPES.has(r.type)) runDist += r.distance;
       datesSet.add(r.utcDayTimestamp);
 
-      if (isTotal) {
-        const y = Number(r.dateStr.slice(0, 4));
-        yearMap.set(y, (yearMap.get(y) || 0) + r.distance);
-      } else {
-        const diffDays = Math.floor((r.exactTime - firstDay) / 86400000);
-        const week = Math.max(0, Math.min(51, Math.floor(diffDays / 7)));
-        weekData[week] += r.distance;
-      }
-
-      if (!isTotal) {
-        distMap.set(r.dateStr, (distMap.get(r.dateStr) || 0) + r.distance);
-      }
+      const diffDays = Math.floor((r.utcDayTimestamp - firstDayUTC) / 86400000);
+      const week = Math.max(0, Math.min(totalWeeks - 1, Math.floor(diffDays / 7)));
+      weekData[week] += r.distance;
+      distMap.set(r.dateStr, (distMap.get(r.dateStr) || 0) + r.distance);
     });
 
     const activeDays = datesSet.size;
@@ -91,65 +100,51 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       }
     }
 
-    let rawSparklineData: number[] = isTotal ? [] : weekData;
-    if (isTotal && yearMap.size > 0) {
-      const minYear = Math.min(...yearMap.keys());
-      const maxYear = Math.max(...yearMap.keys());
-      for (let y = minYear; y <= maxYear; y++) rawSparklineData.push(yearMap.get(y) || 0);
-    }
-    const sparklineData = rawSparklineData.map((val, idx, arr) => {
+    const sparklineData = weekData.map((val, idx, arr) => {
       const prev = arr[idx - 1] !== undefined ? arr[idx - 1] : val;
       const next = arr[idx + 1] !== undefined ? arr[idx + 1] : val;
       return prev * 0.25 + val * 0.5 + next * 0.25;
     });
 
+    const sparklineMax = Math.max(...sparklineData, 1);
+
     let yMax = 0, yDate = '';
     const mMax = new Map<number, number>(), mDate = new Map<number, string>();
-    if (!isTotal) {
-      distMap.forEach((dist, dateStr) => {
-        const month = Number(dateStr.slice(5, 7)) - 1;
-        if (dist > yMax) { yMax = dist; yDate = dateStr; }
-        if (dist > (mMax.get(month) || 0)) { mMax.set(month, dist); mDate.set(month, dateStr); }
-      });
-    }
+    distMap.forEach((dist, dateStr) => {
+      const month = Number(dateStr.slice(5, 7)) - 1;
+      if (dist > yMax) { yMax = dist; yDate = dateStr; }
+      if (dist > (mMax.get(month) || 0)) { mMax.set(month, dist); mDate.set(month, dateStr); }
+    });
 
     return {
       stats: { totalDist: totalDist / 1000, rideDist: rideDist / 1000, runDist: runDist / 1000, activeDays, maxStreak },
       sparklineData,
+      sparklineMax,
       yearlyMaxDate: yDate,
       monthlyMaxDates: mDate
     };
-  }, [normalizedRuns, isTotal, displayYear]);
+  }, [normalizedRuns, displayYear]);
 
   const monthlyData = useMemo(() => {
-    if (isTotal) return null;
-
-    const currentRuns = normalizedRuns.filter(r => r.month === monthIndex);
-    const runsMap = new Map<string, typeof normalizedRuns>();
-    let mTotal = 0, mRide = 0, mRun = 0;
-    let mCalories = 0; 
-
+    const monthData = runsByMonth.get(monthIndex) || { runs: [], runsByDate: new Map() };
+    const { runs: currentRuns, runsByDate: runsMap } = monthData;
+    
+    let mTotal = 0, mRide = 0, mRun = 0, mCalories = 0; 
     const timeBlocks = new Array(8).fill(0);
     const hrCounts = new Array(5).fill(0);
     let validHrRuns = 0;
     let maxTimeBlockCount = 0;
 
     currentRuns.forEach(r => {
-      if (!runsMap.has(r.dateStr)) runsMap.set(r.dateStr, []);
-      runsMap.get(r.dateStr)!.push(r);
-      
       const distKm = r.distance / 1000;
       mTotal += r.distance;
       
       if (RIDE_TYPES.has(r.type)) {
-        mRide += r.distance;
-        mCalories += distKm * CURRENT_WEIGHT_KG * 0.3;     
+        mRide += r.distance; mCalories += distKm * CURRENT_WEIGHT_KG * 0.3;     
       } else if (r.type === 'Walk') {
-        mRun += r.distance;
-        mCalories += distKm * CURRENT_WEIGHT_KG * 0.73;    
+        mRun += r.distance; mCalories += distKm * CURRENT_WEIGHT_KG * 0.73;    
       } else if (RUN_TYPES.has(r.type)) {
-        mRun += r.distance;
-        mCalories += distKm * CURRENT_WEIGHT_KG * 1.036;   
+        mRun += r.distance; mCalories += distKm * CURRENT_WEIGHT_KG * 1.036;   
       }
 
       const blockIndex = Math.floor(r.hour / 3);
@@ -185,58 +180,41 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       { color: '#FF0000', title: '无氧极限', name: 'Z5', range: '≥160' },
     ];
 
-    // 🌟 SVG 3/4 仪表盘数学常量优化
-    const RADIUS = 40; // 恢复至40，配合变大的容器
-    const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-    const GAUGE_LENGTH = CIRCUMFERENCE * 0.75; 
-
-    // 🌟 降噪配色方案：使用克制的高级深浅色，不再“闹眼睛”
-    const gauges = [
-      {
-        key: 'kcal',
-        value: Math.round(mCalories),
-        unit: 'KCAL',
-        label: '热量消耗',
-        color: '#FF8A00', // 更沉稳的保时捷橙
-        progress: GAUGE_LENGTH * Math.min(mCalories / GOAL_KCAL, 1)
-      },
-      {
-        key: 'fat',
-        value: (mCalories / 7700).toFixed(2),
-        unit: 'KG',
-        label: '燃烧脂肪',
-        color: '#32D74B', // 维持原有的健康绿
-        progress: GAUGE_LENGTH * Math.min((mCalories / 7700) / GOAL_FAT, 1)
-      },
-      {
-        key: 'tea',
-        value: Math.floor(mCalories / 500),
-        unit: 'CUPS',
-        label: '抵消奶茶',
-        color: '#00C7BE', // 更清透清爽的青蓝色
-        progress: GAUGE_LENGTH * Math.min(Math.floor(mCalories / 500) / GOAL_TEA, 1)
-      }
-    ];
-
     return {
       runsByDate: runsMap,
       monthDetailStats: { totalDist: mTotal / 1000, rideDist: mRide / 1000, runDist: mRun / 1000 },
-      gauges,
-      gaugeConstants: { radius: RADIUS, circumference: CIRCUMFERENCE, gaugeLength: GAUGE_LENGTH },
+      ...calculateGauges(mCalories),
       insights: {
         hasActivities: currentRuns.length > 0, timeBlocks, maxTimeBlockCount: Math.max(maxTimeBlockCount, 1),
         peakPersona, personas, validHrRuns, hrCounts, hrZonesInfo, hrMaxZone: hrZonesInfo[hrMaxIndex]
       }
     };
-  }, [normalizedRuns, isTotal, monthIndex]);
+  }, [runsByMonth, monthIndex]);
+
+  return { displayYear, normalizedRuns, runIdIndexMap, globalData, monthlyData };
+}
+
+const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRunCalendarProps) => {
+  const [monthIndex, setMonthIndex] = useState<number>(new Date().getMonth());
+  const [direction, setDirection] = useState<number>(0);
+
+  const engine = useRunDataEngine(runs, year, monthIndex);
+
+  useEffect(() => {
+    if (engine.normalizedRuns.length > 0) {
+      setMonthIndex(engine.normalizedRuns[0].month);
+      setDirection(0);
+    }
+  }, [engine.normalizedRuns]);
 
   const sparklinePath = useMemo(() => {
-    if (globalData.sparklineData.length === 0) return '';
+    const data = engine.globalData.sparklineData;
+    if (data.length === 0) return '';
     const width = 200, height = 40, pad = 6;
-    const max = Math.max(...globalData.sparklineData, 1);
+    const max = engine.globalData.sparklineMax; 
     
-    const points = globalData.sparklineData.map((d, i) => ({
-      x: (i / (globalData.sparklineData.length - 1 || 1)) * width,
+    const points = data.map((d, i) => ({
+      x: (i / (data.length - 1 || 1)) * width,
       y: height - pad - (d / max) * (height - 2 * pad)
     }));
     if (points.length === 1) return `M 0,${points[0].y} L ${width},${points[0].y}`;
@@ -251,13 +229,13 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
     }
     return path;
-  }, [globalData.sparklineData.join(',')]);
+  }, [engine.globalData.sparklineData, engine.globalData.sparklineMax]); 
 
   const handlePrevMonth = () => { setDirection(-1); setMonthIndex(prev => Math.max(0, prev - 1)); };
   const handleNextMonth = () => { setDirection(1); setMonthIndex(prev => Math.min(11, prev + 1)); };
 
-  const firstDayOfMonth = new Date(displayYear, monthIndex, 1).getDay();
-  const daysInMonth = new Date(displayYear, monthIndex + 1, 0).getDate();
+  const firstDayOfMonth = new Date(engine.displayYear, monthIndex, 1).getDay();
+  const daysInMonth = new Date(engine.displayYear, monthIndex + 1, 0).getDate();
   const days = Array.from({ length: firstDayOfMonth }, () => null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1));
 
   return (
@@ -279,157 +257,150 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
           </svg>
         )}
         
-        <div className={styles.globalTitle}>{isTotal ? '生涯总里程' : '年度总里程'}</div>
+        <div className={styles.globalTitle}>年度总里程</div>
 
         <div className={styles.globalMainStat}>
-          <span className={styles.val}>{globalData.stats.totalDist.toFixed(1)}</span>
+          <span className={styles.val}>{engine.globalData.stats.totalDist.toFixed(1)}</span>
           <span className={styles.unit}>KM</span>
         </div>
         
         <div className={styles.metricsRow}>
-          <div className={styles.metricBlock}><span className={styles.metricLabel}>骑行</span><span className={styles.metricValue}>{globalData.stats.rideDist.toFixed(0)}<small>km</small></span></div>
-          <div className={styles.metricBlock}><span className={styles.metricLabel}>跑走</span><span className={styles.metricValue}>{globalData.stats.runDist.toFixed(0)}<small>km</small></span></div>
-          <div className={styles.metricBlock}><span className={styles.metricLabel}>出勤</span><span className={styles.metricValue}>{globalData.stats.activeDays}<small>天</small></span></div>
-          <div className={styles.metricBlock}><span className={styles.metricLabel}>连签</span><span className={styles.metricValue}>{globalData.stats.maxStreak}<small>天</small></span></div>
+          <div className={styles.metricBlock}><span className={styles.metricLabel}>骑行</span><span className={styles.metricValue}>{engine.globalData.stats.rideDist.toFixed(0)}<small>km</small></span></div>
+          <div className={styles.metricBlock}><span className={styles.metricLabel}>跑走</span><span className={styles.metricValue}>{engine.globalData.stats.runDist.toFixed(0)}<small>km</small></span></div>
+          <div className={styles.metricBlock}><span className={styles.metricLabel}>出勤</span><span className={styles.metricValue}>{engine.globalData.stats.activeDays}<small>天</small></span></div>
+          <div className={styles.metricBlock}><span className={styles.metricLabel}>连签</span><span className={styles.metricValue}>{engine.globalData.stats.maxStreak}<small>天</small></span></div>
         </div>
       </div>
 
-      {isTotal || !monthlyData ? (
-        <div className={styles.totalPlaceholder}><p>切换至具体年份<br/>查看月度运动日历</p></div>
-      ) : (
-        <>
-          <div className={styles.calendarSection}>
-            <div className={styles.monthHeader}>
-              <div className={styles.monthNav}>
-                <button onClick={handlePrevMonth} disabled={monthIndex === 0} title="上个月"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg></button>
-                <span>{displayYear}-{String(monthIndex + 1).padStart(2, '0')}</span>
-                <button onClick={handleNextMonth} disabled={monthIndex === 11} title="下个月"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg></button>
-              </div>
-            </div>
+      <div className={styles.calendarSection}>
+        <div className={styles.monthHeader}>
+          <div className={styles.monthNav}>
+            <button onClick={handlePrevMonth} disabled={monthIndex === 0} title="上个月"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg></button>
+            <span>{engine.displayYear}-{String(monthIndex + 1).padStart(2, '0')}</span>
+            <button onClick={handleNextMonth} disabled={monthIndex === 11} title="下个月"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg></button>
+          </div>
+        </div>
+        
+        <div className={styles.weekdays}>{['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (<div key={i}>{d}</div>))}</div>
+        
+        <div key={`${engine.displayYear}-${monthIndex}`} className={styles.grid} data-direction={direction}>
+          {days.map((day, idx) => {
+            if (!day) return <div key={`empty-${idx}`} className={styles.emptyDay} />;
+            const dateStr = `${engine.displayYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayRuns = engine.monthlyData.runsByDate.get(dateStr) || [];
+            const hasRun = dayRuns.length > 0;
+            const primaryRun = hasRun ? dayRuns[0] : null;
+            const runColor = primaryRun ? colorFromType(primaryRun.type) : '#32D74B';
+            const isSelected = hasRun && runs[runIndex]?.run_id === primaryRun?.run_id;
             
-            <div className={styles.weekdays}>{['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (<div key={i}>{d}</div>))}</div>
-            
-            <div key={`${displayYear}-${monthIndex}`} className={styles.grid} data-direction={direction}>
-              {days.map((day, idx) => {
-                if (!day) return <div key={`empty-${idx}`} className={styles.emptyDay} />;
-                const dateStr = `${displayYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayRuns = monthlyData.runsByDate.get(dateStr) || [];
-                const hasRun = dayRuns.length > 0;
-                const primaryRun = hasRun ? dayRuns[0] : null;
-                const runColor = primaryRun ? colorFromType(primaryRun.type) : '#32D74B';
-                const isSelected = hasRun && runs[runIndex]?.run_id === primaryRun?.run_id;
-                
-                const isYearlyMax = dateStr === globalData.yearlyMaxDate;
-                const isMonthlyMax = !isYearlyMax && dateStr === globalData.monthlyMaxDates.get(monthIndex);
-                const isMaxDay = isYearlyMax || isMonthlyMax;
+            const isYearlyMax = dateStr === engine.globalData.yearlyMaxDate;
+            const isMonthlyMax = !isYearlyMax && dateStr === engine.globalData.monthlyMaxDates.get(monthIndex);
+            const isMaxDay = isYearlyMax || isMonthlyMax;
 
-                return (
-                  <div key={dateStr} className={`${styles.dayCell} ${hasRun ? styles.hasRun : ''} ${isSelected ? styles.selected : ''} ${isMaxDay ? styles.maxDay : ''}`} onClick={() => { if (hasRun && primaryRun) { if (isSelected) { locateActivity([]); setRunIndex(-1); } else { locateActivity([primaryRun.run_id]); setRunIndex(runIdIndexMap.get(primaryRun.run_id) ?? -1); } } }} style={{ backgroundColor: (isSelected && !isMaxDay) ? `${runColor}26` : undefined, boxShadow: (isSelected && !isMaxDay) ? `inset 0 0 0 1px ${runColor}` : undefined }}>
-                    {hasRun && (
-                      <div className={styles.runTooltip}>
-                        <div className={styles.ttList}>
-                          {dayRuns.map((r) => (
-                            <div key={r.run_id} className={styles.ttItem}>
-                              <span className={styles.ttName} style={{ color: colorFromType(r.type) }}>{formatRunName(r.name, r.start_date_local, r.type)}</span>
-                              <span className={styles.ttVal}>{(r.distance / 1000).toFixed(1)} <small>km</small></span>
-                            </div>
-                          ))}
+            return (
+              <div key={dateStr} className={`${styles.dayCell} ${hasRun ? styles.hasRun : ''} ${isSelected ? styles.selected : ''} ${isMaxDay ? styles.maxDay : ''}`} onClick={() => { if (hasRun && primaryRun) { if (isSelected) { locateActivity([]); setRunIndex(-1); } else { locateActivity([primaryRun.run_id]); setRunIndex(engine.runIdIndexMap.get(primaryRun.run_id) ?? -1); } } }} style={{ backgroundColor: (isSelected && !isMaxDay) ? `${runColor}26` : undefined, boxShadow: (isSelected && !isMaxDay) ? `inset 0 0 0 1px ${runColor}` : undefined }}>
+                {hasRun && (
+                  <div className={styles.runTooltip}>
+                    <div className={styles.ttList}>
+                      {dayRuns.map((r) => (
+                        <div key={r.run_id} className={styles.ttItem}>
+                          <span className={styles.ttName} style={{ color: colorFromType(r.type) }}>{formatRunName(r.name, r.start_date_local, r.type)}</span>
+                          <span className={styles.ttVal}>{(r.distance / 1000).toFixed(1)} <small>km</small></span>
                         </div>
-                        {isMaxDay && (
-                          <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD700' : '#64D2FF' }}>
-                            <span>{isYearlyMax ? '年度最高' : '月度最高'}</span>
-                            <span className={styles.ttVal}>{(dayRuns.reduce((sum, r) => sum + r.distance, 0) / 1000).toFixed(1)} <small>km</small></span>
-                          </div>
-                        )}
+                      ))}
+                    </div>
+                    {isMaxDay && (
+                      <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD700' : '#64D2FF' }}>
+                        <span>{isYearlyMax ? '年度最高' : '月度最高'}</span>
+                        <span className={styles.ttVal}>{(dayRuns.reduce((sum, r) => sum + r.distance, 0) / 1000).toFixed(1)} <small>km</small></span>
                       </div>
                     )}
-
-                    {isMaxDay ? (
-                      isYearlyMax ? (<svg className={styles.yearlyBadge} viewBox="0 0 36 36" fill="currentColor"><circle cx="18" cy="18" r="16" fill="url(#goldGrad)" /><circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" /><path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" /></svg>) : 
-                      (<svg className={styles.monthlyBadge} viewBox="0 0 36 36" fill="currentColor"><circle cx="18" cy="18" r="16" fill="url(#blueGrad)" /><circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" /><path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" /></svg>)
-                    ) : (<span className={styles.dateNum} style={{ color: hasRun ? runColor : 'inherit', opacity: hasRun ? 1 : 0.3, fontWeight: hasRun ? 800 : 500, textShadow: hasRun ? `0 0 8px ${runColor}40` : 'none' }}>{day}</span>)}
-                    {!isMaxDay && dayRuns.length > 1 && (<div className={styles.dotsRow}>{dayRuns.map((r) => (<span key={r.run_id} className={styles.tinyDot} style={{ backgroundColor: colorFromType(r.type) }} />))}</div>)}
                   </div>
-                );
-              })}
-            </div>
+                )}
 
-            <div className={styles.monthFooter}>
-              里程 <span>{monthlyData.monthDetailStats.totalDist.toFixed(1)}</span> km 
-              <span className={styles.dot}>•</span> 骑行 <span>{monthlyData.monthDetailStats.rideDist.toFixed(1)}</span> km 
-              <span className={styles.dot}>•</span> 跑走 <span>{monthlyData.monthDetailStats.runDist.toFixed(1)}</span> km
+                {isMaxDay ? (
+                  isYearlyMax ? (<svg className={styles.yearlyBadge} viewBox="0 0 36 36" fill="currentColor"><circle cx="18" cy="18" r="16" fill="url(#goldGrad)" /><circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" /><path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" /></svg>) : 
+                  (<svg className={styles.monthlyBadge} viewBox="0 0 36 36" fill="currentColor"><circle cx="18" cy="18" r="16" fill="url(#blueGrad)" /><circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" /><path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" /></svg>)
+                ) : (<span className={styles.dateNum} style={{ color: hasRun ? runColor : 'inherit', opacity: hasRun ? 1 : 0.3, fontWeight: hasRun ? 800 : 500, textShadow: hasRun ? `0 0 8px ${runColor}40` : 'none' }}>{day}</span>)}
+                {!isMaxDay && dayRuns.length > 1 && (<div className={styles.dotsRow}>{dayRuns.map((r) => (<span key={r.run_id} className={styles.tinyDot} style={{ backgroundColor: colorFromType(r.type) }} />))}</div>)}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className={styles.monthFooter}>
+          里程 <span>{engine.monthlyData.monthDetailStats.totalDist.toFixed(1)}</span> km 
+          <span className={styles.dot}>•</span> 骑行 <span>{engine.monthlyData.monthDetailStats.rideDist.toFixed(1)}</span> km 
+          <span className={styles.dot}>•</span> 跑走 <span>{engine.monthlyData.monthDetailStats.runDist.toFixed(1)}</span> km
+        </div>
+      </div>
+
+      <div className={styles.metabolicCard}>    
+        <div className={styles.metaBody}>
+          {engine.monthlyData.gauges.map(g => (
+            <div key={g.key} className={styles.metaCol}>
+              <div className={styles.gaugeContainer}>
+                <svg viewBox="7 7 86 86" className={styles.gaugeSvg}>
+                  <circle cx="50" cy="50" r={engine.monthlyData.gaugeConstants.radius} className={styles.gaugeTrack} 
+                          style={{ strokeDasharray: `${engine.monthlyData.gaugeConstants.gaugeLength} ${engine.monthlyData.gaugeConstants.circumference}` }} />
+                  <circle cx="50" cy="50" r={engine.monthlyData.gaugeConstants.radius} className={styles.gaugeFill} 
+                          style={{ stroke: g.color, strokeDasharray: `${g.progress} ${engine.monthlyData.gaugeConstants.circumference}` }} />
+                </svg>
+                <div className={styles.gaugeText}>
+                  <span className={styles.gaugeNum} style={{ color: g.color }}>{g.value}</span>
+                  <span className={styles.gaugeUnit}>{g.unit}</span>
+                </div>
+              </div>
+              <div className={styles.gaugeLabel}>
+                {g.label}
+              </div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.monthlyInsights}>
+        <div className={styles.insightCard}>
+          <div className={styles.insightHeader}>
+            <span className={styles.insightTitle}>{engine.monthlyData.insights.hasActivities ? engine.monthlyData.insights.peakPersona : '等待记录'}<span className={styles.titleTag}>时段</span></span>
           </div>
-
-          <div className={styles.metabolicCard}>    
-            <div className={styles.metaBody}>
-              {monthlyData.gauges.map(g => (
-                <div key={g.key} className={styles.metaCol}>
-                  <div className={styles.gaugeContainer}>
-                    <svg viewBox="0 0 100 100" className={styles.gaugeSvg}>
-                      <circle cx="50" cy="50" r={monthlyData.gaugeConstants.radius} className={styles.gaugeTrack} 
-                              style={{ strokeDasharray: `${monthlyData.gaugeConstants.gaugeLength} ${monthlyData.gaugeConstants.circumference}` }} />
-                      <circle cx="50" cy="50" r={monthlyData.gaugeConstants.radius} className={styles.gaugeFill} 
-                              style={{ stroke: g.color, strokeDasharray: `${g.progress} ${monthlyData.gaugeConstants.circumference}` }} />
-                    </svg>
-                    <div className={styles.gaugeText}>
-                      <span className={styles.gaugeNum} style={{ color: g.color }}>{g.value}</span>
-                      <span className={styles.gaugeUnit}>{g.unit}</span>
-                    </div>
-                  </div>
-                  {/* 文字前的圆点已彻底删除 */}
-                  <div className={styles.gaugeLabel}>
-                    {g.label}
+          <div className={styles.insightContent}>
+            <div className={styles.punchCard}>
+              {engine.monthlyData.insights.timeBlocks.map((count, i) => (
+                <div key={i} className={styles.barWrapper}>
+                  <div className={styles.punchHole} style={{ backgroundColor: count > 0 ? `rgba(50, 215, 75, ${0.3 + 0.7 * (count / engine.monthlyData.insights.maxTimeBlockCount)})` : 'rgba(255,255,255,0.04)' }} />
+                  <div className={styles.runTooltip}>
+                    <div className={styles.ttItem}><span className={styles.ttName} style={{ color: '#8E8E93', fontSize: '0.8rem' }}>{engine.monthlyData.insights.personas[i].time}</span><span className={styles.ttVal}>{count} <small>趟</small></span></div>
                   </div>
                 </div>
               ))}
             </div>
+            <div className={styles.insightLabels}><span>00:00</span><span>12:00</span><span>24:00</span></div>
           </div>
+        </div>
 
-          <div className={styles.monthlyInsights}>
-            <div className={styles.insightCard}>
-              <div className={styles.insightHeader}>
-                <span className={styles.insightTitle}>{monthlyData.insights.hasActivities ? monthlyData.insights.peakPersona : '等待记录'}<span className={styles.titleTag}>时段</span></span>
-              </div>
-              <div className={styles.insightContent}>
-                <div className={styles.punchCard}>
-                  {monthlyData.insights.timeBlocks.map((count, i) => (
-                    <div key={i} className={styles.barWrapper}>
-                      <div className={styles.punchHole} style={{ backgroundColor: count > 0 ? `rgba(50, 215, 75, ${0.3 + 0.7 * (count / monthlyData.insights.maxTimeBlockCount)})` : 'rgba(255,255,255,0.04)' }} />
-                      <div className={styles.runTooltip}>
-                        <div className={styles.ttItem}><span className={styles.ttName} style={{ color: '#8E8E93', fontSize: '0.8rem' }}>{monthlyData.insights.personas[i].time}</span><span className={styles.ttVal}>{count} <small>趟</small></span></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.insightLabels}><span>00:00</span><span>12:00</span><span>24:00</span></div>
-              </div>
-            </div>
-
-            <div className={styles.insightCard}>
-              <div className={styles.insightHeader}>
-                <span className={styles.insightTitle}>{monthlyData.insights.validHrRuns ? monthlyData.insights.hrMaxZone.title : '等待记录'}<span className={styles.titleTag}>心率</span></span>
-              </div>
-              <div className={styles.insightContent}>
-                <div className={styles.zoneChart}>
-                  {monthlyData.insights.hrCounts.map((count, i) => (
-                    <div key={i} className={styles.zoneCol}>
-                      <div className={styles.zoneBar} style={{ height: monthlyData.insights.validHrRuns > 0 ? `${Math.max(12, (count / monthlyData.insights.validHrRuns) * 100)}%` : '12%', backgroundColor: count > 0 ? monthlyData.insights.hrZonesInfo[i].color : 'rgba(255,255,255,0.05)' }} />
-                      <div className={styles.runTooltip}>
-                        <div className={styles.ttItem}>
-                          <span className={styles.ttName} style={{ color: monthlyData.insights.hrZonesInfo[i].color, fontSize: '0.8rem' }}>{monthlyData.insights.hrZonesInfo[i].range} <small style={{ color: monthlyData.insights.hrZonesInfo[i].color }}>BPM</small></span>
-                          <span className={styles.ttVal}>{count} <small>趟</small></span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.insightLabels}>{monthlyData.insights.hrZonesInfo.map((info, i) => (<span key={i} className={styles.zLabel}>{info.name}</span>))}</div>
-              </div>
-            </div>
+        <div className={styles.insightCard}>
+          <div className={styles.insightHeader}>
+            <span className={styles.insightTitle}>{engine.monthlyData.insights.validHrRuns ? engine.monthlyData.insights.hrMaxZone.title : '等待记录'}<span className={styles.titleTag}>心率</span></span>
           </div>
-        </>
-      )}
+          <div className={styles.insightContent}>
+            <div className={styles.zoneChart}>
+              {engine.monthlyData.insights.hrCounts.map((count, i) => (
+                <div key={i} className={styles.zoneCol}>
+                  <div className={styles.zoneBar} style={{ height: engine.monthlyData.insights.validHrRuns > 0 ? `${Math.max(12, (count / engine.monthlyData.insights.validHrRuns) * 100)}%` : '12%', backgroundColor: count > 0 ? engine.monthlyData.insights.hrZonesInfo[i].color : 'rgba(255,255,255,0.05)' }} />
+                  <div className={styles.runTooltip}>
+                    <div className={styles.ttItem}>
+                      <span className={styles.ttName} style={{ color: engine.monthlyData.insights.hrZonesInfo[i].color, fontSize: '0.8rem' }}>{engine.monthlyData.insights.hrZonesInfo[i].range} <small style={{ color: engine.monthlyData.insights.hrZonesInfo[i].color }}>BPM</small></span>
+                      <span className={styles.ttVal}>{count} <small>趟</small></span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className={styles.insightLabels}>{engine.monthlyData.insights.hrZonesInfo.map((info, i) => (<span key={i} className={styles.zLabel}>{info.name}</span>))}</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
