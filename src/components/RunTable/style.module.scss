@@ -87,7 +87,6 @@
   border-radius: 16px;
   padding: 14px 16px;
   cursor: pointer;
-  /* 🌟 BUG 修复：彻底删除了 opacity: 0 和 animation */
   transition: transform 0.2s ease, background 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.03);
 
@@ -106,8 +105,8 @@
    3. 行内排版：黄金四角
 ========================================= */
 .iconRing {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06); 
   display: flex;
@@ -146,7 +145,6 @@
 .runDate {
   font-size: 0.8rem;
   color: #dfdfdf; 
-  font-family: 'JetBrainsMono', monospace;
   flex-shrink: 0;
   margin-left: 10px;
 }
@@ -159,21 +157,22 @@
 }
 
 .runDistance {
-  font-family: 'JetBrainsMono', monospace;
   font-size: 1.55rem; 
-  font-weight: 800;
   line-height: 1;
   letter-spacing: -0.5px;
   flex-shrink: 0;
   margin-right: 10px;
+  font-weight: 800; 
+  font-style: italic;
 }
 
 .distUnit {
   font-size: 0.75rem;
-  font-weight: 600;
-  margin-left: 2px;
+  margin-left: 4px;
   color: #dfdfdf; 
   opacity: 0.7;
+  font-weight: normal;
+  font-style: normal;
 }
 
 .runStats {
@@ -182,7 +181,7 @@
   align-items: center;
   flex-wrap: wrap; 
   justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
   text-align: right;
 }
 
@@ -195,7 +194,6 @@
 /* 🌟 让中文标签变成极其低调的暗灰色，不抢戏 */
 .statLabel {
   color: #666666; 
-  font-family: -apple-system, sans-serif;
   margin-right: 4px;
   font-size: 0.7rem;
 }

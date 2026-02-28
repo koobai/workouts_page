@@ -65,7 +65,7 @@ const formatSpeedOrPace = (speed: number, type: string): string => {
   if (Number.isNaN(speed) || speed === 0) return '0';
 
   if (type === 'Ride') {
-    return `${(speed * 3.6).toFixed(2)} km/h`;
+    return `${(speed * 3.6).toFixed(2)}  km/h`;
   }
 
   if (type === 'Swim') {
