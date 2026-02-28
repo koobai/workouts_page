@@ -1,33 +1,36 @@
-# 核心网络与同步
 httpx>=0.15.0,<=0.15.5
-stravalib
-cloudscraper==1.2.58
-stravaweblib
-tenacity
-
-# 数据处理与解析 (s2sphere 是核心依赖，不能删除)
 gpxpy==1.4.2
-git+https://github.com/alenrajsp/tcxreader.git
-polyline
-numpy
-lxml==4.9.4
-eviltransform
+stravalib
+appdirs>=1.4.0
+svgwrite>=1.1.9
+colour>=0.1.5
 s2sphere
-
-# 数据库与系统
-sqlalchemy
-pyyaml
-aiofiles
-rich
-tzlocal
-tzfpy; platform_system != "Windows"
-timezonefinder; platform_system == "Windows"
-
-# 工具类
 arrow
 geopy
+polyline
+sqlalchemy
+tzfpy; platform_system != "Windows"
+timezonefinder; platform_system == "Windows"
+pyyaml
+aiofiles
+cloudscraper==1.2.58
+git+https://github.com/alenrajsp/tcxreader.git
+rich
+lxml==4.9.4
+eviltransform
+stravaweblib
+tenacity
+numpy
+tzlocal
+fit-tool
+garmin-fit-sdk
 haversine==2.8.0
+garth
+pycryptodome
 
-# 基础解析
+
 bs4
 html.parser
+aiofiles
+# if you need to import kml file
+#fastkml
