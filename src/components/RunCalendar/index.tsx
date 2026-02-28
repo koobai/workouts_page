@@ -10,30 +10,10 @@ interface IRunCalendarProps {
   year: string;
 }
 
-const CURRENT_WEIGHT_KG = 75; 
-const GOAL_KCAL = 8000; 
-const GOAL_FAT = 1.0;   
-const GOAL_TEA = 15;    
-
 const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide']);
 const RUN_TYPES = new Set(['Run', 'Hike', 'TrailRun', 'Walk']);
 
-const calculateGauges = (mCalories: number) => {
-  const kcalVal = Math.round(mCalories);
-  const fatVal = Number((mCalories / 7700).toFixed(2));
-  const teaVal = Math.floor(mCalories / 500);
-
-  const gauges = [
-    // 颜色回归稍微克制一点的高级亮色
-    { key: 'kcal', emoji: '🔥', value: kcalVal, unit: 'KCAL', label: '热量消耗', color: '#FF9F0A', percent: Math.min((kcalVal / GOAL_KCAL) * 100, 100) },
-    { key: 'fat', emoji: '🎈', value: fatVal, unit: 'KG', label: '燃烧脂肪', color: '#32D74B', percent: Math.min((fatVal / GOAL_FAT) * 100, 100) },
-    { key: 'tea', emoji: '🧋', value: teaVal, unit: 'CUPS', label: '抵消奶茶', color: '#64D2FF', percent: Math.min((teaVal / GOAL_TEA) * 100, 100) }
-  ];
-
-  return { gauges };
-};
-
-// 🌟 卸下了 isTotal 判断的沉重枷锁，只为精准年份而生的极速数据引擎
+// 🌟 为精准年份而生的极速数据引擎（已卸载冗余的卡路里和脂肪计算）
 function useRunDataEngine(runs: Activity[], year: string, monthIndex: number) {
   const displayYear = Number(year);
 
@@ -130,31 +110,20 @@ function useRunDataEngine(runs: Activity[], year: string, monthIndex: number) {
     const monthData = runsByMonth.get(monthIndex) || { runs: [], runsByDate: new Map() };
     const { runs: currentRuns, runsByDate: runsMap } = monthData;
     
-    let mTotal = 0, mRide = 0, mRun = 0, mCalories = 0; 
+    let mTotal = 0, mRide = 0, mRun = 0; 
     const timeBlocks = new Array(8).fill(0);
     const hrCounts = new Array(5).fill(0);
     let validHrRuns = 0;
     let maxTimeBlockCount = 0;
 
-    const daysInMonth = new Date(displayYear, monthIndex + 1, 0).getDate();
-    const dailyKcal = new Array(daysInMonth).fill(0);
-
     currentRuns.forEach(r => {
-      const distKm = r.distance / 1000;
       mTotal += r.distance;
       
-      let runKcal = 0;
       if (RIDE_TYPES.has(r.type)) {
-        mRide += r.distance; runKcal = distKm * CURRENT_WEIGHT_KG * 0.3;     
-      } else if (r.type === 'Walk') {
-        mRun += r.distance; runKcal = distKm * CURRENT_WEIGHT_KG * 0.73;    
-      } else if (RUN_TYPES.has(r.type)) {
-        mRun += r.distance; runKcal = distKm * CURRENT_WEIGHT_KG * 1.036;   
+        mRide += r.distance; 
+      } else if (r.type === 'Walk' || RUN_TYPES.has(r.type)) {
+        mRun += r.distance; 
       }
-      mCalories += runKcal;
-
-      const day = parseInt(r.start_date_local.slice(8, 10), 10);
-      dailyKcal[day - 1] += runKcal;
 
       const blockIndex = Math.floor(r.hour / 3);
       timeBlocks[blockIndex]++;
@@ -170,42 +139,6 @@ function useRunDataEngine(runs: Activity[], year: string, monthIndex: number) {
     });
 
     runsMap.forEach(dayRuns => { if (dayRuns.length > 1) dayRuns.sort((a, b) => b.exactTime - a.exactTime); });
-
-    // 🌟🌟🌟 全新升级的：5点加权高斯平滑算法 🌟🌟🌟
-    const smoothedKcal = dailyKcal.map((val, idx, arr) => {
-      const p2 = arr[idx - 2] !== undefined ? arr[idx - 2] : (arr[idx - 1] !== undefined ? arr[idx - 1] : val);
-      const p1 = arr[idx - 1] !== undefined ? arr[idx - 1] : val;
-      const n1 = arr[idx + 1] !== undefined ? arr[idx + 1] : val;
-      const n2 = arr[idx + 2] !== undefined ? arr[idx + 2] : (arr[idx + 1] !== undefined ? arr[idx + 1] : val);
-      return p2 * 0.1 + p1 * 0.2 + val * 0.4 + n1 * 0.2 + n2 * 0.1; 
-    });
-
-    const maxKcal = Math.max(...smoothedKcal, 1);
-    const width = 100, height = 40, pad = 4; // 高度放宽到 40
-    const points = smoothedKcal.map((d, i) => ({
-      x: (i / (daysInMonth - 1 || 1)) * width,
-      y: height - pad - (d / maxKcal) * (height - 2 * pad)
-    }));
-
-    let sparkPath = `M ${points[0].x},${points[0].y}`;
-    if (points.length > 1) {
-      for (let i = 0; i < points.length - 1; i++) {
-        const p0 = points[i === 0 ? 0 : i - 1], p1 = points[i], p2 = points[i + 1], p3 = points[i + 2 < points.length ? i + 2 : i + 1];
-        // 放宽张力，曲线更圆滑
-        const cp1x = p1.x + (p2.x - p0.x) / 5, cp2x = p2.x - (p3.x - p1.x) / 5;
-        let cp1y = p1.y + (p2.y - p0.y) / 5, cp2y = p2.y - (p3.y - p1.y) / 5;
-        cp1y = Math.max(pad / 2, Math.min(height - pad / 2, cp1y));
-        cp2y = Math.max(pad / 2, Math.min(height - pad / 2, cp2y));
-        sparkPath += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
-      }
-    } else {
-      sparkPath += ` L ${width},${points[0].y}`;
-    }
-
-    const gauges = [
-      { key: 'fat', value: (mCalories / 7700).toFixed(2), unit: '公斤', label: '燃烧脂肪', color: '#FF9F0A' },
-      { key: 'tea', value: Math.floor(mCalories / 500), unit: '杯', label: '抵消奶茶', color: '#64D2FF' }
-    ];
 
     const personas = [
       { name: '午夜潜行', time: '00:00-03:00' }, { name: '破晓先锋', time: '03:00-06:00' },
@@ -228,7 +161,6 @@ function useRunDataEngine(runs: Activity[], year: string, monthIndex: number) {
     return {
       runsByDate: runsMap,
       monthDetailStats: { totalDist: mTotal / 1000, rideDist: mRide / 1000, runDist: mRun / 1000 },
-      gauges, sparkPath, 
       insights: {
         hasActivities: currentRuns.length > 0, timeBlocks, maxTimeBlockCount: Math.max(maxTimeBlockCount, 1),
         peakPersona, personas, validHrRuns, hrCounts, hrZonesInfo, hrMaxZone: hrZonesInfo[hrMaxIndex]
@@ -378,39 +310,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
           <span className={styles.dot}>•</span> 骑行 <span>{engine.monthlyData.monthDetailStats.rideDist.toFixed(1)}</span> km 
           <span className={styles.dot}>•</span> 跑走 <span>{engine.monthlyData.monthDetailStats.runDist.toFixed(1)}</span> km
         </div>
-      </div>
-
-     <div className={styles.metaCardsRow}>    
-        {engine.monthlyData.gauges.map(g => (
-          <div key={g.key} className={styles.metaSmallCard}>
-            
-            <svg 
-              key={`${engine.displayYear}-${monthIndex}-${g.key}`} 
-              className={styles.cardSparkline} 
-              viewBox="0 0 100 40" 
-              preserveAspectRatio="none"
-            >
-              <defs>
-                <linearGradient id={`grad-${g.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={g.color} stopOpacity="0.25" />
-                  <stop offset="100%" stopColor={g.color} stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d={`${engine.monthlyData.sparkPath} L 100,40 L 0,40 Z`} fill={`url(#grad-${g.key})`} stroke="none" className={styles.cardSparklineFill} />
-              <path d={engine.monthlyData.sparkPath} fill="none" stroke={g.color} className={styles.cardSparklineLine} />
-            </svg>
-
-            <div className={styles.cardContent}>
-              <div className={styles.cardLabel}>
-                {g.label} <span className={styles.titleTag}>{g.unit}</span>
-              </div>
-              <div className={styles.cardData}>
-                <span className={styles.cardValue}>{g.value}</span>
-              </div>
-            </div>
-
-          </div>
-        ))}
       </div>
 
       <div className={styles.monthlyInsights}>

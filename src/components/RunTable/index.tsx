@@ -1,11 +1,5 @@
-import React, { useState } from 'react';
-import {
-  sortDateFunc,
-  sortDateFuncReverse,
-  convertMovingTime2Sec,
-  Activity,
-  RunIds,
-} from '@/utils/utils';
+import React, { useState, useMemo, useEffect } from 'react';
+import { sortDateFuncReverse, Activity, RunIds } from '@/utils/utils';
 import RunRow from './RunRow';
 import styles from './style.module.scss';
 
@@ -17,8 +11,6 @@ interface IRunTableProperties {
   setRunIndex: (_index: number) => void;
 }
 
-type SortFunc = (_a: Activity, _b: Activity) => number;
-
 const RunTable = ({
   runs,
   locateActivity,
@@ -26,77 +18,76 @@ const RunTable = ({
   runIndex,
   setRunIndex,
 }: IRunTableProperties) => {
-  const [sortFuncInfo, setSortFuncInfo] = useState('');
-  // TODO refactor?
-  const sortTypeFunc: SortFunc = (a, b) =>
-    sortFuncInfo === 'Type' ? a.type > b.type ? 1:-1 : b.type < a.type ? -1:1;
-  const sortKMFunc: SortFunc = (a, b) =>
-    sortFuncInfo === 'KM' ? a.distance - b.distance : b.distance - a.distance;
-  const sortPaceFunc: SortFunc = (a, b) =>
-    sortFuncInfo === 'Pace'
-      ? a.average_speed - b.average_speed
-      : b.average_speed - a.average_speed;
-  const sortBPMFunc: SortFunc = (a, b) => {
-    return sortFuncInfo === 'BPM'
-      ? (a.average_heartrate ?? 0) - (b.average_heartrate ?? 0)
-      : (b.average_heartrate ?? 0) - (a.average_heartrate ?? 0);
-  };
-  const sortRunTimeFunc: SortFunc = (a, b) => {
-    const aTotalSeconds = convertMovingTime2Sec(a.moving_time);
-    const bTotalSeconds = convertMovingTime2Sec(b.moving_time);
-    return sortFuncInfo === 'Time'
-      ? aTotalSeconds - bTotalSeconds
-      : bTotalSeconds - aTotalSeconds;
-  };
-  const sortDateFuncClick =
-    sortFuncInfo === 'Date' ? sortDateFunc : sortDateFuncReverse;
-  const sortFuncMap = new Map([
-    ['运动', sortTypeFunc],
-    ['里程', sortKMFunc],
-    ['速度', sortPaceFunc],
-    ['心率', sortBPMFunc],
-    ['用时', sortRunTimeFunc],
-    ['日期', sortDateFuncClick],
-  ]);
+  const [filterMonth, setFilterMonth] = useState('All');
 
-  const handleClick: React.MouseEventHandler<HTMLElement> = (e) => {
-    const funcName = (e.target as HTMLElement).innerHTML;
-    const f = sortFuncMap.get(funcName);
+  const availableMonths = useMemo(() => {
+    if (!runs || runs.length === 0) return [];
+    const months = new Set<string>();
+    runs.forEach(r => {
+      if (r.start_date_local) months.add(r.start_date_local.slice(5, 7));
+    });
+    return Array.from(months).sort().reverse();
+  }, [runs]);
 
-    setRunIndex(-1);
-    setSortFuncInfo(sortFuncInfo === funcName ? '' : funcName);
-    setActivity(runs.sort(f));
-  };
+  useEffect(() => {
+    if (filterMonth !== 'All' && !availableMonths.includes(filterMonth)) {
+      setFilterMonth('All');
+    }
+  }, [availableMonths, filterMonth]);
+
+  const filteredRuns = useMemo(() => {
+    if (!runs) return [];
+    let result = runs;
+    if (filterMonth !== 'All') {
+      result = runs.filter(r => r.start_date_local && r.start_date_local.slice(5, 7) === filterMonth);
+    }
+    return [...result].sort((a, b) => {
+      return new Date(b.start_date_local).getTime() - new Date(a.start_date_local).getTime();
+    });
+  }, [runs, filterMonth]);
 
   return (
     <div className={styles.tableContainer}>
-      <table className={styles.runTable} cellSpacing="0" cellPadding="0">
-       <thead>
-          <tr>
-            {Array.from(sortFuncMap.keys()).map((k) => (
-              <th 
-                key={k} 
-                onClick={handleClick}
-                className={k === '日期' ? styles.runDateHeader : ''}
+      
+      <div className={styles.controlsArea}>
+        {availableMonths.length > 0 && (
+          <div className={styles.filterBar}>
+            <div 
+              className={`${styles.filterPill} ${filterMonth === 'All' ? styles.activePill : ''}`}
+              onClick={() => { setFilterMonth('All'); setRunIndex(-1); }}
+            >
+              All
+            </div>
+            {availableMonths.map(m => (
+              <div 
+                key={m} 
+                className={`${styles.filterPill} ${filterMonth === m ? styles.activePill : ''}`}
+                onClick={() => { setFilterMonth(m); setRunIndex(-1); }}
               >
-                {k}
-              </th>
+                {/* 🌟 直接渲染 01, 02 这种纯粹的数字格式 */}
+                {m}
+              </div>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {runs.map((run, elementIndex) => (
-            <RunRow
-              key={run.run_id}
-              elementIndex={elementIndex}
-              locateActivity={locateActivity}
-              run={run}
-              runIndex={runIndex}
-              setRunIndex={setRunIndex}
-            />
-          ))}
-        </tbody>
-      </table>
+            
+            {/* 🌟 在列表的最后/最右侧加上“月”字标签 */}
+            <div className={styles.monthLabel}>月</div>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.cardList}>
+        {filteredRuns.map((run, elementIndex) => (
+          <RunRow
+            key={run.run_id}
+            elementIndex={elementIndex}
+            locateActivity={locateActivity}
+            run={run}
+            runIndex={runIndex}
+            setRunIndex={setRunIndex}
+          />
+        ))}
+      </div>
+      
     </div>
   );
 };

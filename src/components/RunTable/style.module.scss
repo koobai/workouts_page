@@ -1,142 +1,224 @@
 @import '../../styles/variables.scss';
 
-// 列表加载动画保持不变
-@keyframes slideUpFade {
-  0% {
-    opacity: 0;
-    transform: translateY(30px); 
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .tableContainer {
   width: 100%;
-  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 120px;
 }
 
-.runTable {
+/* =========================================
+   🌟 1. 全宽控制卡片与大气胶囊导航
+========================================= */
+.controlsArea {
+  display: flex;
+  align-items: center;
   width: 100%;
-  font-variant: tabular-nums;
-  /* 🌟 核心：必须合并边框，分割线才会生效 */
-  border-collapse: collapse; 
-
-  thead {
-    color: #8E8E93; /* Apple 高级灰 */
-    font-size: 0.85rem;
-    text-align: left;
-    /* 给表头加个极其微弱的暗背景，拉开层次 */
-    background: rgba(0, 0, 0, 0.15); 
-
-    th {
-      /* 🌟 核心优化：拉大表头的上下左右间距 (呼吸感) */
-      padding: 1.1rem; 
-      letter-spacing: 1px;
-      cursor: pointer;           
-      user-select: none;        
-      -webkit-user-select: none;
-      /* 加上底部细线 */
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      transition: color 0.2s ease;
-
-      &:hover {
-        color: #FFFFFF;
-      }
-    }
-  }
+  background: #1C1C1E; 
+  border-radius: 16px; 
+  padding: 12px 16px; 
+  border: 1px solid rgba(255, 255, 255, 0.03); 
+  margin-bottom: 10px; 
+  box-sizing: border-box;
 }
 
-.runRow {
+.filterBar {
+  display: flex;
+  flex-wrap: nowrap; 
+  align-items: center;
+  gap: 8px; 
+  width: 100%;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.filterPill {
+  padding: 6px 10px; 
+  border-radius: 99px; 
+  background: transparent; 
+  color: #8E8E93;
+  font-size: 0.9rem; 
   cursor: pointer;
-  opacity: 0;
-  animation: slideUpFade 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  transition: background 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-
-  td {
-    padding: 1.1rem;
-    font-size: 0.95rem;
-
-    &:first-child {
-      text-align: left;
-      min-width: 110px;
-      max-width: 140px;
-      line-height: 1.4;
-      word-break: break-word; 
-    }
-  }
-
-  /* 同样，最后一行去掉边框，保持底部干净 */
-  &:last-child {
-    border-bottom: none;
-  }
+  white-space: nowrap;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); 
+  flex-shrink: 0;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.04);
+    color: #dfdfdf;
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
-/* 强制让选中的行呈现明亮 */
-.selected {
-  color: #FFFF00 !important;
-  background-color: rgba(50, 215, 75, 0.05) !important;
+.activePill {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #dfdfdf !important; 
+}
+
+/* 🌟 最右侧“月”字标签 */
+.monthLabel {
+  margin-left: auto; 
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.05); 
+  border-radius: 6px;
+  color: #8E8E93; 
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+  cursor: default;
+  user-select: none;
+}
+
+/* =========================================
+   2. 独立的卡片列表 
+========================================= */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.runCard {
+  display: flex;
+  align-items: center;
+  background: #1C1C1E; 
+  border-radius: 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+  /* 🌟 BUG 修复：彻底删除了 opacity: 0 和 animation */
+  transition: transform 0.2s ease, background 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-1px);
+  }
+}
+
+.selectedCard {
+  background: rgba(50, 215, 75, 0.06) !important;
+  border-color: rgba(50, 215, 75, 0.2) !important;
+}
+
+/* =========================================
+   3. 行内排版：黄金四角
+========================================= */
+.iconRing {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+
+.cardContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px; 
+  min-width: 0; 
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+}
+
+.runName {
+  font-size: 0.8rem;
+  color: #8E8E93; 
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .runDate {
-  color: #dfdfdf;
-  font-size: 0.85rem !important;
+  font-size: 0.8rem;
+  color: #dfdfdf; 
+  font-family: 'JetBrainsMono', monospace;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.bottomRow {
   display: flex;
-  justify-content: flex-end; 
-  align-items: baseline; 
-  flex-wrap: wrap; 
-  column-gap: 6px; 
-  row-gap: 2px; 
-  line-height: 1.2;
+  justify-content: space-between;
+  align-items: flex-end; 
+  width: 100%;
+}
+
+.runDistance {
+  font-family: 'JetBrainsMono', monospace;
+  font-size: 1.55rem; 
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.distUnit {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 2px;
+  color: #dfdfdf; 
   opacity: 0.7;
 }
 
-.runDateHeader {
+.runStats {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; 
+  justify-content: flex-end;
+  gap: 12px;
   text-align: right;
 }
 
-.timePart {
-  opacity: 0.5;
-  margin: 0; 
+.statItem {
   white-space: nowrap;
-}
-
-.paceUnit {
-  font-size: 0.75em;
-  margin-left: 3px;
-  opacity: 0.7;
-}
-
-.heartRateEmoji {
-  font-size: 0.75rem;
-}
-
-.heartRateWrapper {
   display: inline-flex;
-  align-items: center;
-  gap: 2px;
+  align-items: baseline;
 }
 
-// 页面宽度小于 768px 样式 (手机端)
+/* 🌟 让中文标签变成极其低调的暗灰色，不抢戏 */
+.statLabel {
+  color: #666666; 
+  font-family: -apple-system, sans-serif;
+  margin-right: 4px;
+  font-size: 0.7rem;
+}
+
+/* 🌟 让核心数据变成明亮的灰白色，并使用等宽数字体，瞬间拉开层次！ */
+.statValue {
+  color: #dfdfdf;
+  opacity: 0.8;
+}
+
+.fire {
+  font-size: 0.75rem;
+  margin-left: 2px;
+}
+
+/* 手机端防拥挤微调 */
 @media (max-width: 768px) {
-  .runTable {
-    width: 100%; /* 修复原来 150% 导致的横向滚动黑边问题 */
-  }
-  
-  .runTable thead th,
-  .runRow td {
-    /* 手机端稍微缩小一点间距，防止文字挤压 */
-    padding: 1rem 0.6rem;
-    font-size: 0.85rem;
-  }
-  .runDate {
-    flex-wrap: nowrap;
-    white-space: nowrap;
+  .controlsArea { padding: 12px; }
+  .runCard { padding: 12px; }
+  .iconRing { width: 38px; height: 38px; font-size: 1.15rem; margin-right: 12px; }
+  .runDistance { font-size: 1.35rem; }
+  .runStats { font-size: 0.65rem; }
+.tableContainer {
+  margin-bottom: 60px;
 }
 }

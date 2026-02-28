@@ -187,7 +187,6 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="page-nrong bento-card-table">
           <RunTable
             runs={runs}
             locateActivity={locateActivity}
@@ -195,7 +194,7 @@ const Index = () => {
             runIndex={runIndex}
             setRunIndex={setRunIndex}
           />
-        </div>
+          
       <Analytics />
     </Layout>
   );
