@@ -216,93 +216,72 @@
 }
 
 /* =========================================
-   🌟 3. 代谢与控糖引擎 (终极形态：精密仪器盘) 🌟
+   🌟 3. 代谢情绪卡片
 ========================================= */
-.metabolicCard {
+.metaCardsRow {
   display: flex;
-  flex-direction: column;
+  gap: 10px; 
+  width: 100%;
+}
+
+.metaSmallCard {
+  flex: 1;
+  position: relative;
   background: #1C1C1E;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 10px 4px;
+  height: 80px; 
+  overflow: hidden;
+  padding: 15px;
 }
-
-.metaBody {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  width: 100%;
-}
-
-.metaCol {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center; 
-}
-
-/* 维持容器尺寸，通过内部 SVG 留白增加呼吸感 */
-.gaugeContainer {
-  position: relative;
-  width: 84px; 
-  height: 84px;
-  margin-top: -2px;
-}
-
-.gaugeSvg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(135deg);
-  margin-top: -2px;
-}
-
-/* 🌟 将线条削瘦到 5px，彻底摆脱笨重感，彰显工业精密感 */
-.gaugeTrack {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.04);
-  stroke-width: 5;
-  stroke-linecap: round;
-}
-
-.gaugeFill {
-  fill: none;
-  stroke-width: 5;
-  stroke-linecap: round;
-  transition: stroke-dasharray 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.gaugeText {
+.cardSparkline {
   position: absolute;
-  inset: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60%; 
+  z-index: 0;
+  pointer-events: none;
+}
+.cardSparklineFill {
+  animation: fadeUp 1s ease-out forwards;
+  transform-origin: bottom;
+}
+.cardSparklineLine {
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.4;
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: drawLine 3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.cardContent {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+}
+.cardLabel {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding-bottom: 2px; 
-}
-
-/* 🌟 缩小字号，让它在细线圆环里显得极其从容 */
-.gaugeNum {
-  font-size: 1rem; 
-  line-height: 1;
-  text-shadow: none; 
-}
-
-.gaugeUnit {
-  font-size: 0.5rem; 
+  gap: 6px; 
+  font-size: 0.75rem;
   color: #8E8E93;
   letter-spacing: 0.5px;
-  margin-top: 2px;
 }
 
-/* 🌟 收紧文字标签，配合细线仪表盘 */
-.gaugeLabel {
+.cardData {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.6rem;
-  color: #8E8E93;
-  margin-top: -10px;
+  align-items: baseline;
+}
+
+.cardValue {
+  font-size: 1.2rem; 
+  color: #dfdfdf;
+  line-height: 1;
 }
 /* =========================================
    4. 月度洞察双卡片
@@ -321,7 +300,7 @@
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   padding: 15px;
-  gap: 12px;
+  gap: 10px;
 }
 
 .insightHeader {
