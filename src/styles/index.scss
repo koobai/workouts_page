@@ -391,7 +391,7 @@ h5 .header-link {
 }
 
 // ------------------------------------
-// 手机端响应式适配
+// 📱 手机端响应式适配 (重构排序逻辑)
 // ------------------------------------
 @media (max-width: 768px) {
   body {
@@ -433,11 +433,23 @@ h5 .header-link {
   }
   
   .bento-hero {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bento-calendar-board {
+    display: contents;
   }
   
-  .bento-dashboard { 
-    display: none;
+  .bento-map-placeholder {
+    order: 2;
+    height: 240px; 
+    min-height: auto;
+  }
+  .bento-card-map { 
+    height: 240px; 
+    min-height: auto;
   }
   
   .bento-card-table {
@@ -445,14 +457,6 @@ h5 .header-link {
     margin-bottom: 50px; 
   }
   
-  /* 手机端地图固定高度 */
-  .bento-map-placeholder,
-  .bento-card-map { 
-    height: 240px; 
-    min-height: auto;
-  }
-  
-  /* 手机端吸顶宽度微调，因为手机端 padding 是 15px */
   .sticky-map {
     width: calc(100% - 30px) !important;
     top: 10px !important;
