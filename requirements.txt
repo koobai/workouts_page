@@ -1,36 +1,32 @@
+# 核心网络与同步
 httpx>=0.15.0,<=0.15.5
-gpxpy==1.4.2
 stravalib
-appdirs>=1.4.0
-svgwrite>=1.1.9
-colour>=0.1.5
-s2sphere
-arrow
-geopy
-polyline
-sqlalchemy
-tzfpy; platform_system != "Windows"
-timezonefinder; platform_system == "Windows"
-pyyaml
-aiofiles
 cloudscraper==1.2.58
-git+https://github.com/alenrajsp/tcxreader.git
-rich
-lxml==4.9.4
-eviltransform
 stravaweblib
 tenacity
+
+# 数据处理与解析
+gpxpy==1.4.2
+git+https://github.com/alenrajsp/tcxreader.git
+polyline
 numpy
+lxml==4.9.4
+eviltransform
+
+# 数据库与系统
+sqlalchemy
+pyyaml
+aiofiles
+rich
 tzlocal
-fit-tool
-garmin-fit-sdk
+tzfpy; platform_system != "Windows"
+timezonefinder; platform_system == "Windows"
+
+# 工具类
+arrow
+geopy
 haversine==2.8.0
-garth
-pycryptodome
 
-
+# 基础解析（同步脚本可能用到）
 bs4
 html.parser
-aiofiles
-# if you need to import kml file
-#fastkml
