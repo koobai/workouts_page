@@ -23,7 +23,6 @@
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   padding: 20px 15px 16px;
-  /* 🌟 核心修复 2：防止内部趋势线渲染时溢出上边角 */
   overflow: hidden; 
 }
 
@@ -42,13 +41,13 @@
   margin-bottom: 12px; 
 
   .val {
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: 800;
     font-style: italic;
     color: #32D74B;
     line-height: 1;
     letter-spacing: -1px;
-    text-shadow: 0 0 20px rgba(50, 215, 75, 0.15);
+    text-shadow: 0 0 20px rgba(50, 215, 75, 0.15); 
   }
 
   .unit {
@@ -138,14 +137,8 @@
       height: 16px;
     }
 
-    &:hover:not(:disabled) {
-      color: #fff;
-    }
-
-    &:disabled {
-      opacity: 0.15;
-      cursor: not-allowed;
-    }
+    &:hover:not(:disabled) { color: #fff; }
+    &:disabled { opacity: 0.15; cursor: not-allowed; }
   }
 }
 
@@ -166,28 +159,14 @@
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
   animation-fill-mode: forwards;
 
-  &[data-direction="1"] {
-    animation-name: slideInRight;
-  }
-
-  &[data-direction="-1"] {
-    animation-name: slideInLeft;
-  }
+  &[data-direction="1"] { animation-name: slideInRight; }
+  &[data-direction="-1"] { animation-name: slideInLeft; }
 }
 
-@keyframes slideInRight {
-  0% { opacity: 0; transform: translateX(12px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
+@keyframes slideInRight { 0% { opacity: 0; transform: translateX(12px); } 100% { opacity: 1; transform: translateX(0); } }
+@keyframes slideInLeft { 0% { opacity: 0; transform: translateX(-12px); } 100% { opacity: 1; transform: translateX(0); } }
 
-@keyframes slideInLeft {
-  0% { opacity: 0; transform: translateX(-12px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
-
-.emptyDay {
-  min-height: 34px;
-}
+.emptyDay { min-height: 34px; }
 
 .dayCell {
   width: 34px;
@@ -207,10 +186,7 @@
   &.hasRun {
     cursor: pointer;
     background: rgba(255, 255, 255, 0.02);
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.08);
-    }
+    &:hover { background: rgba(255, 255, 255, 0.08); }
   }
 }
 
@@ -221,7 +197,7 @@
 }
 
 .monthFooter {
-  padding-top: 16px;
+  padding-top: 10px;
   text-align: center;
   font-size: 0.65rem;
   color: #8E8E93;
@@ -240,7 +216,96 @@
 }
 
 /* =========================================
-   3. 月度洞察双卡片
+   🌟 3. 代谢与控糖引擎 (终极形态：精密仪器盘) 🌟
+========================================= */
+.metabolicCard {
+  display: flex;
+  flex-direction: column;
+  background: #1C1C1E;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 10px 4px;
+}
+
+.metaBody {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.metaCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+}
+
+/* 维持容器尺寸，通过内部 SVG 留白增加呼吸感 */
+.gaugeContainer {
+  position: relative;
+  width: 84px; 
+  height: 84px;
+  margin-top: -2px;
+}
+
+.gaugeSvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(135deg);
+  margin-top: -2px;
+}
+
+/* 🌟 将线条削瘦到 5px，彻底摆脱笨重感，彰显工业精密感 */
+.gaugeTrack {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.04);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.gaugeFill {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.gaugeText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2px; 
+}
+
+/* 🌟 缩小字号，让它在细线圆环里显得极其从容 */
+.gaugeNum {
+  font-size: 1rem; 
+  line-height: 1;
+  text-shadow: none; 
+}
+
+.gaugeUnit {
+  font-size: 0.5rem; 
+  color: #8E8E93;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* 🌟 收紧文字标签，配合细线仪表盘 */
+.gaugeLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6rem;
+  color: #8E8E93;
+  margin-top: -10px;
+}
+/* =========================================
+   4. 月度洞察双卡片
 ========================================= */
 .monthlyInsights {
   display: flex;
@@ -268,7 +333,6 @@
 
 .insightTitle {
   font-size: 0.75rem;
-  font-weight: 700;
   color: #dfdfdf;
   letter-spacing: 0.5px;
   display: flex;
@@ -279,7 +343,6 @@
 .titleTag {
   font-size: 0.55rem;
   color: #8E8E93;
-  font-weight: 500;
   background: rgba(255, 255, 255, 0.08);
   padding: 3px 6px; 
   border-radius: 4px;
@@ -298,7 +361,6 @@
   justify-content: space-between;
   font-size: 0.55rem;
   color: #666;
-  font-family: SF Pro Display, monospace;
   margin-top: 2px;
   
   .zLabel {
@@ -368,7 +430,7 @@
 }
 
 /* =========================================
-   4. Total 全局占位卡片
+   5. Total 全局占位卡片
 ========================================= */
 .totalPlaceholder {
   flex: 1;
@@ -397,11 +459,10 @@
 }
 
 /* =========================================
-   5. 背景呼吸曲线 (Sparkline)
+   6. 背景呼吸曲线 (Sparkline)
 ========================================= */
 .sparkline {
   position: absolute;
-  /* 🌟 核心修复 3：原本是 -5px，现在调为 8px，给最高峰让出绝佳的呼吸间距 */
   top: 8px;
   left: 0;
   width: 100%;
@@ -421,7 +482,6 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.2;
-  filter: drop-shadow(0 2px 6px rgba(50, 215, 75, 0.5));
   stroke-dasharray: 400;
   stroke-dashoffset: 400;
   animation: drawLine 5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
@@ -437,7 +497,7 @@
 }
 
 /* =========================================
-   6. 通用高级富文本悬浮提示 (Tooltip)
+   7. 通用高级富文本悬浮提示 (Tooltip)
 ========================================= */
 .runTooltip {
   visibility: hidden;
@@ -473,14 +533,8 @@
     gap: 20px;
     font-size: 0.85rem;
 
-    .ttName {
-      font-weight: 500;
-    }
-
     .ttVal {
       color: #dfdfdf;
-      font-family: SF Pro Display, monospace;
-      font-weight: 700;
 
       small {
         font-size: 0.65rem;
@@ -499,8 +553,6 @@
     justify-content: space-between;
     align-items: center;
     font-weight: 800;
-    
-    .ttVal { font-family: SF Pro Display, monospace; }
   }
 }
 
@@ -513,7 +565,7 @@
 }
 
 /* =========================================
-   7. 成就系统勋章 (Badges) & 其他杂项
+   8. 成就系统勋章 (Badges) & 其他杂项
 ========================================= */
 .maxDay {
   z-index: 2;

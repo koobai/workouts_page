@@ -10,6 +10,12 @@ interface IRunCalendarProps {
   year: string;
 }
 
+// 🌟 动态体重基准与目标设定
+const CURRENT_WEIGHT_KG = 75; 
+const GOAL_KCAL = 8000; // 每月目标燃烧大卡
+const GOAL_FAT = 1.0;   // 每月目标燃烧纯脂(kg)
+const GOAL_TEA = 15;    // 每月目标抵消奶茶(杯)
+
 const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide']);
 const RUN_TYPES = new Set(['Run', 'Hike', 'TrailRun', 'Walk']);
 
@@ -20,9 +26,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
   const [monthIndex, setMonthIndex] = useState<number>(new Date().getMonth());
   const [direction, setDirection] = useState<number>(0);
 
-  // ==========================================
-  // 🌟 1. 基础数据预处理层 (消除 new Date 炸弹)
-  // ==========================================
   const { normalizedRuns, runIdIndexMap } = useMemo(() => {
     const indexMap = new Map<number, number>();
     const normRuns = runs.map((r, i) => {
@@ -31,7 +34,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       const month = Number(dateStr.slice(5, 7)) - 1;
       const cleanDateString = r.start_date_local.replace(' ', 'T');
       
-      // 🚀 优化 2：在这里一次性算好时间戳和 Hour，杜绝后续计算里的 new Date()
       const utcDayTimestamp = new Date(`${dateStr}T00:00:00Z`).getTime();
       const exactDateObj = new Date(cleanDateString);
       const exactTime = exactDateObj.getTime();
@@ -49,30 +51,20 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     }
   }, [normalizedRuns, isTotal]);
 
-  // ==========================================
-  // 🌟 2. 全局数据仓库 (消除 O(n*5)，全量数据只循环 1 次)
-  // ==========================================
   const globalData = useMemo(() => {
     let totalDist = 0, rideDist = 0, runDist = 0;
     const datesSet = new Set<number>();
-    
-    // Sparkline 缓存组
     const yearMap = new Map<number, number>();
     const weekData = new Array(52).fill(0);
     const firstDay = new Date(displayYear, 0, 1).getTime();
-    
-    // 极值缓存组
     const distMap = new Map<string, number>();
 
-    // 🚀 优化 1：唯一一次遍历全量数据
     normalizedRuns.forEach(r => {
-      // A. 累加基础里程
       totalDist += r.distance;
       if (RIDE_TYPES.has(r.type)) rideDist += r.distance;
       else if (RUN_TYPES.has(r.type)) runDist += r.distance;
       datesSet.add(r.utcDayTimestamp);
 
-      // B. 累加 Sparkline 趋势
       if (isTotal) {
         const y = Number(r.dateStr.slice(0, 4));
         yearMap.set(y, (yearMap.get(y) || 0) + r.distance);
@@ -82,13 +74,11 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
         weekData[week] += r.distance;
       }
 
-      // C. 累加单日极值
       if (!isTotal) {
         distMap.set(r.dateStr, (distMap.get(r.dateStr) || 0) + r.distance);
       }
     });
 
-    // 处理连签与出勤
     const activeDays = datesSet.size;
     let maxStreak = 0;
     if (activeDays > 0) {
@@ -101,7 +91,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       }
     }
 
-    // 处理 Sparkline 平滑点
     let rawSparklineData: number[] = isTotal ? [] : weekData;
     if (isTotal && yearMap.size > 0) {
       const minYear = Math.min(...yearMap.keys());
@@ -114,7 +103,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       return prev * 0.25 + val * 0.5 + next * 0.25;
     });
 
-    // 处理极值日期
     let yMax = 0, yDate = '';
     const mMax = new Map<number, number>(), mDate = new Map<number, string>();
     if (!isTotal) {
@@ -133,33 +121,37 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     };
   }, [normalizedRuns, isTotal, displayYear]);
 
-  // ==========================================
-  // 🌟 3. 月度数据仓库 (切换月份时极速响应)
-  // ==========================================
   const monthlyData = useMemo(() => {
     if (isTotal) return null;
 
     const currentRuns = normalizedRuns.filter(r => r.month === monthIndex);
     const runsMap = new Map<string, typeof normalizedRuns>();
     let mTotal = 0, mRide = 0, mRun = 0;
-    
+    let mCalories = 0; 
+
     const timeBlocks = new Array(8).fill(0);
     const hrCounts = new Array(5).fill(0);
     let validHrRuns = 0;
     let maxTimeBlockCount = 0;
 
-    // 🚀 优化 1：月度切片只遍历 1 次
     currentRuns.forEach(r => {
-      // A. 日历映射
       if (!runsMap.has(r.dateStr)) runsMap.set(r.dateStr, []);
       runsMap.get(r.dateStr)!.push(r);
       
-      // B. 月度底边栏统计
+      const distKm = r.distance / 1000;
       mTotal += r.distance;
-      if (RIDE_TYPES.has(r.type)) mRide += r.distance;
-      else if (RUN_TYPES.has(r.type)) mRun += r.distance;
+      
+      if (RIDE_TYPES.has(r.type)) {
+        mRide += r.distance;
+        mCalories += distKm * CURRENT_WEIGHT_KG * 0.3;     
+      } else if (r.type === 'Walk') {
+        mRun += r.distance;
+        mCalories += distKm * CURRENT_WEIGHT_KG * 0.73;    
+      } else if (RUN_TYPES.has(r.type)) {
+        mRun += r.distance;
+        mCalories += distKm * CURRENT_WEIGHT_KG * 1.036;   
+      }
 
-      // C. 洞察数据 (直接读取 r.hour，性能极速)
       const blockIndex = Math.floor(r.hour / 3);
       timeBlocks[blockIndex]++;
       if (timeBlocks[blockIndex] > maxTimeBlockCount) maxTimeBlockCount = timeBlocks[blockIndex];
@@ -193,9 +185,44 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       { color: '#FF0000', title: '无氧极限', name: 'Z5', range: '≥160' },
     ];
 
+    // 🌟 SVG 3/4 仪表盘数学常量优化
+    const RADIUS = 40; // 恢复至40，配合变大的容器
+    const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+    const GAUGE_LENGTH = CIRCUMFERENCE * 0.75; 
+
+    // 🌟 降噪配色方案：使用克制的高级深浅色，不再“闹眼睛”
+    const gauges = [
+      {
+        key: 'kcal',
+        value: Math.round(mCalories),
+        unit: 'KCAL',
+        label: '热量消耗',
+        color: '#FF8A00', // 更沉稳的保时捷橙
+        progress: GAUGE_LENGTH * Math.min(mCalories / GOAL_KCAL, 1)
+      },
+      {
+        key: 'fat',
+        value: (mCalories / 7700).toFixed(2),
+        unit: 'KG',
+        label: '燃烧脂肪',
+        color: '#32D74B', // 维持原有的健康绿
+        progress: GAUGE_LENGTH * Math.min((mCalories / 7700) / GOAL_FAT, 1)
+      },
+      {
+        key: 'tea',
+        value: Math.floor(mCalories / 500),
+        unit: 'CUPS',
+        label: '抵消奶茶',
+        color: '#00C7BE', // 更清透清爽的青蓝色
+        progress: GAUGE_LENGTH * Math.min(Math.floor(mCalories / 500) / GOAL_TEA, 1)
+      }
+    ];
+
     return {
       runsByDate: runsMap,
       monthDetailStats: { totalDist: mTotal / 1000, rideDist: mRide / 1000, runDist: mRun / 1000 },
+      gauges,
+      gaugeConstants: { radius: RADIUS, circumference: CIRCUMFERENCE, gaugeLength: GAUGE_LENGTH },
       insights: {
         hasActivities: currentRuns.length > 0, timeBlocks, maxTimeBlockCount: Math.max(maxTimeBlockCount, 1),
         peakPersona, personas, validHrRuns, hrCounts, hrZonesInfo, hrMaxZone: hrZonesInfo[hrMaxIndex]
@@ -203,7 +230,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
     };
   }, [normalizedRuns, isTotal, monthIndex]);
 
-  // 独立缓存渲染 Path，避免数组引发的不必要重绘
   const sparklinePath = useMemo(() => {
     if (globalData.sparklineData.length === 0) return '';
     const width = 200, height = 40, pad = 6;
@@ -225,7 +251,7 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
     }
     return path;
-  }, [globalData.sparklineData.join(',')]); // 用 join 比较极速且安全
+  }, [globalData.sparklineData.join(',')]);
 
   const handlePrevMonth = () => { setDirection(-1); setMonthIndex(prev => Math.max(0, prev - 1)); };
   const handleNextMonth = () => { setDirection(1); setMonthIndex(prev => Math.min(11, prev + 1)); };
@@ -329,16 +355,41 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
             </div>
 
             <div className={styles.monthFooter}>
-              本月里程 <span>{monthlyData.monthDetailStats.totalDist.toFixed(1)}</span> km 
+              里程 <span>{monthlyData.monthDetailStats.totalDist.toFixed(1)}</span> km 
               <span className={styles.dot}>•</span> 骑行 <span>{monthlyData.monthDetailStats.rideDist.toFixed(1)}</span> km 
               <span className={styles.dot}>•</span> 跑走 <span>{monthlyData.monthDetailStats.runDist.toFixed(1)}</span> km
+            </div>
+          </div>
+
+          <div className={styles.metabolicCard}>    
+            <div className={styles.metaBody}>
+              {monthlyData.gauges.map(g => (
+                <div key={g.key} className={styles.metaCol}>
+                  <div className={styles.gaugeContainer}>
+                    <svg viewBox="0 0 100 100" className={styles.gaugeSvg}>
+                      <circle cx="50" cy="50" r={monthlyData.gaugeConstants.radius} className={styles.gaugeTrack} 
+                              style={{ strokeDasharray: `${monthlyData.gaugeConstants.gaugeLength} ${monthlyData.gaugeConstants.circumference}` }} />
+                      <circle cx="50" cy="50" r={monthlyData.gaugeConstants.radius} className={styles.gaugeFill} 
+                              style={{ stroke: g.color, strokeDasharray: `${g.progress} ${monthlyData.gaugeConstants.circumference}` }} />
+                    </svg>
+                    <div className={styles.gaugeText}>
+                      <span className={styles.gaugeNum} style={{ color: g.color }}>{g.value}</span>
+                      <span className={styles.gaugeUnit}>{g.unit}</span>
+                    </div>
+                  </div>
+                  {/* 文字前的圆点已彻底删除 */}
+                  <div className={styles.gaugeLabel}>
+                    {g.label}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
           <div className={styles.monthlyInsights}>
             <div className={styles.insightCard}>
               <div className={styles.insightHeader}>
-                <span className={styles.insightTitle}>{monthlyData.insights.hasActivities ? monthlyData.insights.peakPersona : '等待记录'}<span className={styles.titleTag}>本月时段</span></span>
+                <span className={styles.insightTitle}>{monthlyData.insights.hasActivities ? monthlyData.insights.peakPersona : '等待记录'}<span className={styles.titleTag}>时段</span></span>
               </div>
               <div className={styles.insightContent}>
                 <div className={styles.punchCard}>
@@ -357,7 +408,7 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
 
             <div className={styles.insightCard}>
               <div className={styles.insightHeader}>
-                <span className={styles.insightTitle}>{monthlyData.insights.validHrRuns ? monthlyData.insights.hrMaxZone.title : '等待记录'}<span className={styles.titleTag}>本月心率</span></span>
+                <span className={styles.insightTitle}>{monthlyData.insights.validHrRuns ? monthlyData.insights.hrMaxZone.title : '等待记录'}<span className={styles.titleTag}>心率</span></span>
               </div>
               <div className={styles.insightContent}>
                 <div className={styles.zoneChart}>
