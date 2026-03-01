@@ -247,7 +247,10 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
   const handlePrevMonth = () => { setDirection(-1); setMonthIndex(prev => Math.max(0, prev - 1)); };
   const handleNextMonth = () => { setDirection(1); setMonthIndex(prev => Math.min(11, prev + 1)); };
 
-  const firstDayOfMonth = new Date(engine.displayYear, monthIndex, 1).getDay();
+  /* 🌟 核心修改 1：平移每月第一天的前置空格数逻辑（适配周一起始） */
+  const rawFirstDay = new Date(engine.displayYear, monthIndex, 1).getDay();
+  const firstDayOfMonth = rawFirstDay === 0 ? 6 : rawFirstDay - 1; 
+
   const daysInMonth = new Date(engine.displayYear, monthIndex + 1, 0).getDate();
   const days = Array.from({ length: firstDayOfMonth }, () => null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1));
 
@@ -266,7 +269,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
           <svg key={year} className={styles.sparkline} viewBox="0 0 200 40" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
             <defs><linearGradient id="sparklineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#32D74B" stopOpacity="0.25" /><stop offset="100%" stopColor="#32D74B" stopOpacity="0" /></linearGradient></defs>
             <path d={`${sparklinePath} L 200,40 L 0,40 Z`} fill="url(#sparklineGrad)" stroke="none" className={styles.sparklineFill} />
-            {/* 🌟 核心防闪烁魔法：pathLength="100" 强制将折线路径总长标准化为 100 */}
             <path d={sparklinePath} fill="none" className={styles.sparklineLine} pathLength="100" />
           </svg>
         )}
@@ -295,7 +297,8 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
           </div>
         </div>
         
-        <div className={styles.weekdays}>{['日', '一', '二', '三', '四', '五', '六'].map((d, i) => (<div key={i}>{d}</div>))}</div>
+        {/* 🌟 核心修改 2：替换表头，一二三四五六日排排坐 */}
+        <div className={styles.weekdays}>{['一', '二', '三', '四', '五', '六', '日'].map((d, i) => (<div key={i}>{d}</div>))}</div>
         
         <div key={`${engine.displayYear}-${monthIndex}`} className={styles.grid} data-direction={direction}>
           {days.map((day, idx) => {
