@@ -35,6 +35,44 @@ const RunTable = ({
     }
   }, [availableMonths, filterMonth]);
 
+  // 🌟 核心引擎：找出年度单次最远，以及每个月单次最远的 Run ID
+  const { yearlyMaxRunId, monthlyMaxRunIds } = useMemo(() => {
+    if (!runs || runs.length === 0) return { yearlyMaxRunId: -1, monthlyMaxRunIds: new Set<number>() };
+    
+    let yMaxDist = 0;
+    let yMaxId = -1;
+    
+    const mMaxDist = new Map<string, number>();
+    const mMaxId = new Map<string, number>();
+    
+    runs.forEach(run => {
+      const dist = run.distance;
+      const month = run.start_date_local.slice(5, 7);
+      
+      // 年度最高对比
+      if (dist > yMaxDist) {
+        yMaxDist = dist;
+        yMaxId = run.run_id;
+      }
+      
+      // 月度最高对比
+      if (dist > (mMaxDist.get(month) || 0)) {
+        mMaxDist.set(month, dist);
+        mMaxId.set(month, run.run_id);
+      }
+    });
+    
+    // 如果某个运动已经是年度最高，就不在月度最高里重复打标了
+    const monthlyIds = new Set<number>();
+    mMaxId.forEach((id) => {
+      if (id !== yMaxId) {
+        monthlyIds.add(id);
+      }
+    });
+    
+    return { yearlyMaxRunId: yMaxId, monthlyMaxRunIds: monthlyIds };
+  }, [runs]);
+
   const filteredRuns = useMemo(() => {
     if (!runs) return [];
     let result = runs;
@@ -49,6 +87,20 @@ const RunTable = ({
   return (
     <div className={styles.tableContainer}>
       
+      {/* 🌟 注入勋章的全局渐变色（避免依赖其他组件） */}
+      <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
+        <defs>
+          <linearGradient id="listGoldGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FFD700" />
+            <stop offset="100%" stopColor="#F59E0B" />
+          </linearGradient>
+          <linearGradient id="listBlueGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#64D2FF" />
+            <stop offset="100%" stopColor="#0A84FF" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       <div className={styles.controlsArea}>
         {availableMonths.length > 0 && (
           <div className={styles.filterBar}>
@@ -82,6 +134,8 @@ const RunTable = ({
             run={run}
             runIndex={runIndex}
             setRunIndex={setRunIndex}
+            isYearlyMax={run.run_id === yearlyMaxRunId}
+            isMonthlyMax={monthlyMaxRunIds.has(run.run_id)}
           />
         ))}
       </div>

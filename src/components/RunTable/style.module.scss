@@ -71,7 +71,7 @@
 }
 
 /* =========================================
-   2. 独立的卡片列表 (🌟 新增 Grid 双列布局)
+   2. 独立的卡片列表 (双列 Grid 布局)
 ========================================= */
 .cardList {
   display: grid;
@@ -89,7 +89,7 @@
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.03);
-  position: relative; /* 🌟 核心：给 Tooltip 悬浮定位提供基准点 */
+  position: relative; 
 
   &:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -121,8 +121,8 @@
 .cardContent {
   flex: 1;
   display: flex;
-  justify-content: space-between; /* 左右元素推开 */
-  align-items: center; /* 上下完美居中 */
+  justify-content: space-between; 
+  align-items: center; 
   min-width: 0; 
 }
 
@@ -141,7 +141,6 @@
 .runName {
   font-size: 0.8rem;
   color: #8E8E93; 
-  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -150,11 +149,12 @@
 .runDate {
   font-size: 0.8rem;
   color: #dfdfdf; 
-  font-family: 'JetBrainsMono', monospace;
   flex-shrink: 0;
 }
 
 .runDistance {
+  display: flex;
+  align-items: baseline;
   font-size: 1.55rem; 
   line-height: 1;
   letter-spacing: -0.5px;
@@ -172,13 +172,23 @@
   font-style: normal;
 }
 
+/* 🌟 勋章图标样式 */
+.badgeIcon {
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  align-self: center;
+}
+
 .fire {
   font-size: 0.75rem;
   margin-left: 4px;
 }
 
 /* =========================================
-   4. 悬浮提示框 Tooltip (复用日历样式)
+   4. 悬浮提示框 Tooltip (带成就横幅)
 ========================================= */
 .runTooltip {
   visibility: hidden;
@@ -216,10 +226,20 @@
 
     .ttVal {
       color: #dfdfdf;
-      font-family: 'JetBrainsMono', monospace;
-      font-weight: 500;
     }
   }
+}
+
+/* 🌟 弹窗底部的成就展示模块（去掉了左右分布，变为绝对居中的印章形态） */
+.ttAchievement {
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: center; /* 🌟 核心：横幅居中 */
+  align-items: center;
+  letter-spacing: 2px; /* 增加一点字间距，更有仪式感 */
 }
 
 .runCard:hover .runTooltip {
@@ -238,7 +258,7 @@
   .runDistance { font-size: 1.35rem; }
   .tableContainer { margin-bottom: 60px; }
   
-  /* 🌟 在手机端，屏幕较窄，恢复成一行一个卡片的瀑布流 */
+  /* 在手机端屏幕较窄，恢复成一行一个卡片的瀑布流 */
   .cardList {
     grid-template-columns: 1fr;
   }

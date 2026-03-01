@@ -281,14 +281,14 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                     <div className={styles.ttList}>
                       {dayRuns.map((r) => (
                         <div key={r.run_id} className={styles.ttItem}>
-                          <span className={styles.ttName} style={{ color: colorFromType(r.type) }}>{formatRunName(r.name, r.start_date_local, r.type)}</span>
-                          <span className={styles.ttVal}>{(r.distance / 1000).toFixed(1)} <small>km</small></span>
+                          <span className={styles.ttName}>{formatRunName(r.name, r.start_date_local, r.type)}</span>
+                          <span className={styles.ttVal} style={{ color: colorFromType(r.type) }}>{(r.distance / 1000).toFixed(1)} <small>km</small></span>
                         </div>
                       ))}
                     </div>
                     {isMaxDay && (
                       <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD700' : '#64D2FF' }}>
-                        <span>{isYearlyMax ? '年度最高' : '月度最高'}</span>
+                        <span>{isYearlyMax ? '年度最远' : '月度最远'}</span>
                         <span className={styles.ttVal}>{(dayRuns.reduce((sum, r) => sum + r.distance, 0) / 1000).toFixed(1)} <small>km</small></span>
                       </div>
                     )}

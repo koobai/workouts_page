@@ -11,10 +11,8 @@ img::-moz-selection {
   background: transparent; 
 }
 html, body {
-  overflow-x: hidden;
   width: 100%;
 }
-
 * {
   box-sizing: border-box;
 }
@@ -313,7 +311,6 @@ h5 .header-link {
   gap: 10px;
   margin-bottom: 15px;
   position: relative; 
-  z-index: 80; 
 }
 
 .bento-card {
@@ -365,7 +362,13 @@ h5 .header-link {
     z-index: 2; 
   }
 }
-
+// ------------------------------------
+// 🌟 运动列表 🌟
+// ------------------------------------
+.shuju-list{
+  position: relative;
+  z-index: 90;
+}
 // ------------------------------------
 // 🌟 全新特效：地图专属吸顶动画 🌟
 // ------------------------------------
@@ -402,6 +405,9 @@ h5 .header-link {
 // 📱 手机端响应式适配 (重构排序逻辑)
 // ------------------------------------
 @media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
   body {
     padding: 0 15px 20px 15px; 
   }
@@ -458,11 +464,6 @@ h5 .header-link {
   .bento-card-map { 
     height: 240px; 
     min-height: auto;
-  }
-  
-  .bento-card-table {
-    margin-top: 10px; 
-    margin-bottom: 50px; 
   }
   
   .sticky-map {

@@ -13,9 +13,11 @@ interface IRunRowProperties {
   run: Activity;
   runIndex: number;
   setRunIndex: (_ndex: number) => void;
+  isYearlyMax?: boolean;
+  isMonthlyMax?: boolean;
 }
 
-const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IRunRowProperties) => {
+const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYearlyMax, isMonthlyMax }: IRunRowProperties) => {
   const distance = (run.distance / 1000.0).toFixed(2);
   const paceParts = run.average_speed ? formatSpeedOrPace(run.average_speed, run.type) : null;
   const heartRate = run.average_heartrate;
@@ -92,15 +94,29 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
       </div>
 
       <div className={styles.cardContent}>
-        {/* 🌟 左侧信息：保持名称和里程 */}
         <div className={styles.leftInfo}>
           <div className={styles.runName}>{formatRunName(run.name, run.start_date_local, run.type)}</div>
           <div className={styles.runDistance} style={{ color: themeColor }}>
             {distance}<span className={styles.distUnit}>km</span>
+            
+            {/* 🌟 卡片上的小勋章保持不变 */}
+            {isYearlyMax && (
+              <svg className={styles.badgeIcon} viewBox="0 0 36 36" fill="currentColor">
+                <circle cx="18" cy="18" r="16" fill="url(#listGoldGrad)" />
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" />
+                <path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" />
+              </svg>
+            )}
+            {isMonthlyMax && (
+              <svg className={styles.badgeIcon} viewBox="0 0 36 36" fill="currentColor">
+                <circle cx="18" cy="18" r="16" fill="url(#listBlueGrad)" />
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" />
+                <path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" />
+              </svg>
+            )}
           </div>
         </div>
 
-        {/* 🌟 右侧信息：仅保留时间和垂直居中 */}
         <div className={styles.rightInfo}>
           <div className={styles.runDate}>{datePart} {timePart}</div>
         </div>
@@ -121,6 +137,13 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
             </div>
           ))}
         </div>
+        
+        {/* 🌟 成就弹窗补充：去掉数字，文字绝对居中拉宽，变成一条仪式感拉满的横幅 */}
+        {(isYearlyMax || isMonthlyMax) && (
+          <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD700' : '#64D2FF' }}>
+            <span>{isYearlyMax ? '年度单次最远' : '月度单次最远'}</span>
+          </div>
+        )}
       </div>
     </div>
   );

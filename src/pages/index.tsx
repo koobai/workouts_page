@@ -186,7 +186,7 @@ const Index = () => {
             />
           </div>
         </div>
-
+        <div className="shuju-list">
           <RunTable
             runs={runs}
             locateActivity={locateActivity}
@@ -194,7 +194,7 @@ const Index = () => {
             runIndex={runIndex}
             setRunIndex={setRunIndex}
           />
-          
+          </div>
       <Analytics />
     </Layout>
   );
