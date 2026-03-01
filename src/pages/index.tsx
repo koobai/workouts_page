@@ -127,19 +127,7 @@ const Index = () => {
   }, [geoData]);
 
   useEffect(() => {
-    const runsNum = runs.length;
-    const sliceNum = runsNum >= 10 ? runsNum / 10 : 1;
-    let i = sliceNum;
-    const id = window.setInterval(() => {
-      if (i >= runsNum) {
-        window.clearInterval(id);
-      }
-      const tempRuns = runs.slice(0, i);
-      setGeoData(geoJsonForRuns(tempRuns));
-      i += sliceNum;
-    }, 10);
-    intervalRef.current = id;
-    return () => window.clearInterval(id);
+    setGeoData(geoJsonForRuns(runs));
   }, [runs]);
   
   const yearArray = Array.from(new Set(activities.map((a: Activity) => a.start_date_local.slice(0, 4))));
