@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatSpeedOrPace, formatRunName, getHeartRateColor, colorFromType, formatRunTime, Activity, RunIds } from '@/utils/utils';
+import { formatSpeedOrPace, formatRunName, colorFromType, formatRunTime, Activity, RunIds } from '@/utils/utils';
 import styles from './style.module.scss';
 
 const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide']);
@@ -22,6 +22,7 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYe
   const paceParts = run.average_speed ? formatSpeedOrPace(run.average_speed, run.type) : null;
   const heartRate = run.average_heartrate;
   const type = run.type;
+  const isRide = RIDE_TYPES.has(type);
   const runTime = formatRunTime(run.moving_time);
   const themeColor = colorFromType(type);
   
@@ -40,7 +41,7 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYe
   const timePart = dateStr.length >= 16 ? dateStr.slice(11, 16) : ''; 
 
   const getActivityIcon = () => {
-    if (RIDE_TYPES.has(type)) {
+    if (isRide) {
       return (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 -1 26 26">
           <path fill="currentColor" d="M5.5 21a4.5 4.5 0 1 1 0-9a4.5 4.5 0 0 1 0 9m0-2a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5m13 2a4.5 4.5 0 1 1 0-9a4.5 4.5 0 0 1 0 9m0-2a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5m-7.477-8.695L13 12v6h-2v-5l-2.719-2.266A2 2 0 0 1 8 7.671l2.828-2.828a2 2 0 0 1 2.829 0l1.414 1.414a6.97 6.97 0 0 0 3.917 1.975l-.01 2.015a8.96 8.96 0 0 1-5.321-2.575zM16 5a2 2 0 1 1 0-4a2 2 0 0 1 0 4"/>
@@ -73,16 +74,34 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYe
     return '🏅';
   };
 
-  let paceStr = '';
-  if (typeof paceParts === 'string') {
-    paceStr = paceParts.replace(' ', ''); 
-  } else if (paceParts) {
-    paceStr = paceParts.join('');
+  let paceNum: React.ReactNode = '';
+  let paceUnit = '';
+
+  if (paceParts) {
+    if (Array.isArray(paceParts)) {
+      paceNum = paceParts[0];
+      paceUnit = paceParts[1] as string;
+    } else if (typeof paceParts === 'string') {
+      if (paceParts.includes('km/h')) {
+        paceNum = paceParts.replace(/km\/h/i, '').trim();
+        paceUnit = 'km/h';
+      } else if (paceParts.includes('/100m')) {
+        paceNum = paceParts.replace(/\/100m/i, '').trim();
+        paceUnit = '/100m';
+      } else {
+        paceNum = paceParts.replace(' ', '');
+        paceUnit = '';
+      }
+    }
   }
 
-  const stats = [{ label: '用时', value: runTime }];
-  if (paceStr) stats.push({ label: '配速', value: paceStr });
-  if (heartRate && heartRate > 0) stats.push({ label: '心率', value: heartRate.toFixed(0), isHeart: true });
+  const stats = [
+    { label: '用时', num: runTime, unit: '' }
+  ];
+  if (paceNum) stats.push({ label: isRide ? '均速' : '配速', num: paceNum, unit: paceUnit });
+  
+  // 🌟 核心修改：将心率的 unit 改为了空字符串 ''
+  if (heartRate && heartRate > 0) stats.push({ label: '心率', num: heartRate.toFixed(0), unit: '' });
 
   return (
     <div
@@ -99,7 +118,6 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYe
           <div className={styles.runDistance} style={{ color: themeColor }}>
             {distance}<span className={styles.distUnit}>km</span>
             
-            {/* 🌟 卡片上的小勋章保持不变 */}
             {isYearlyMax && (
               <svg className={styles.badgeIcon} viewBox="0 0 36 36" fill="currentColor">
                 <circle cx="18" cy="18" r="16" fill="url(#listGoldGrad)" />
@@ -122,23 +140,19 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYe
         </div>
       </div>
 
-      {/* 🌟 悬浮提示框 (Tooltip) */}
       <div className={styles.runTooltip}>
         <div className={styles.ttList}>
           {stats.map((s, i) => (
             <div key={i} className={styles.ttItem}>
-              <span className={styles.ttName} style={{ color: '#8E8E93', fontSize: '0.8rem' }}>
-                {s.label}
-              </span>
-              <span className={styles.ttVal} style={s.isHeart ? { color: getHeartRateColor(heartRate) } : {}}>
-                {s.value}
-                {s.isHeart && heartRate >= 130 && <span className={styles.fire}>🔥</span>}
-              </span>
+              <div className={styles.ttNameWrap}>
+                <span className={styles.ttName}>{s.label}</span>
+                {s.unit && <span className={styles.ttUnitTag}>{s.unit}</span>}
+              </div>
+              <span className={styles.ttNum}>{s.num}</span>
             </div>
           ))}
         </div>
         
-        {/* 🌟 成就弹窗补充：去掉数字，文字绝对居中拉宽，变成一条仪式感拉满的横幅 */}
         {(isYearlyMax || isMonthlyMax) && (
           <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD700' : '#64D2FF' }}>
             <span>{isYearlyMax ? '年度单次最远' : '月度单次最远'}</span>

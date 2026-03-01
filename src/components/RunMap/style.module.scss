@@ -36,7 +36,7 @@
   padding: 12px; 
   display: flex;
   flex-direction: column;
-  gap: 8px; 
+  gap: 10px; 
   z-index: 5;
   box-shadow: none; 
   animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
@@ -52,7 +52,6 @@
 .detailName {
   font-size: 0.7rem; 
   color: #dfdfdf;
-  font-weight: 600;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -61,7 +60,7 @@
 }
 
 .detailDate {
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   color: #8E8E93;
   font-weight: normal;
   font-family: monospace;
@@ -70,22 +69,21 @@
 .detailStatsRow {
   display: flex;
   align-items: flex-end;
-  gap: 16px; 
+  gap: 20px; 
 }
 
 .detailStatBlock {
   display: flex;
   flex-direction: column;
-  /* 🌟 核心修复：彻底清空 Flex 容器自带的 gap */
   gap: 0px; 
 }
 
 .statLabel {
-  font-size: 0.5rem; 
+  font-size: 0.65rem; 
   color: #8E8E93;
   letter-spacing: 0.5px;
   line-height: 1; 
-  margin-bottom: 4px; 
+  margin-bottom: 5px; 
 }
 
 .statVal {
@@ -102,7 +100,7 @@
   opacity: 1;
   
   small {
-    font-size: 0.5rem; 
+    font-size: 0.65rem; 
     color: #8E8E93;
     font-style: normal;
     font-weight: normal;

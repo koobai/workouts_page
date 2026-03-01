@@ -56,7 +56,6 @@
   color: #dfdfdf !important; 
 }
 
-/* 🌟 最右侧“月”字标签 */
 .monthLabel {
   margin-left: auto; 
   padding: 3px 8px;
@@ -172,7 +171,6 @@
   font-style: normal;
 }
 
-/* 🌟 勋章图标样式 */
 .badgeIcon {
   width: 20px;
   height: 20px;
@@ -182,13 +180,8 @@
   align-self: center;
 }
 
-.fire {
-  font-size: 0.75rem;
-  margin-left: 4px;
-}
-
 /* =========================================
-   4. 悬浮提示框 Tooltip (带成就横幅)
+   4. 悬浮提示框 Tooltip (胶囊单位排版)
 ========================================= */
 .runTooltip {
   visibility: hidden;
@@ -202,44 +195,68 @@
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 12px 18px;
   width: max-content;
   z-index: 100;
   pointer-events: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
 
   .ttList {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px; /* 增加行间距，让标签不拥挤 */
   }
 
   .ttItem {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    font-size: 0.85rem;
+    align-items: center; /* 垂直居中对齐 */
+    gap: 32px; 
 
-    .ttVal {
+    /* 🌟 左侧：标题与标签组合 */
+    .ttNameWrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ttName {
+      color: #8E8E93;
+      font-size: 0.75rem;
+    }
+
+    /* 🌟 单位做成独立的胶囊标签，复用月字背景逻辑 */
+    .ttUnitTag {
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.05); /* 微弱的白底 */
+      border-radius: 4px;
+      color: #8E8E93;
+      font-size: 0.65rem;
+      letter-spacing: 0.5px;
+    }
+
+    /* 🌟 右侧：纯粹的数字，因为没有单位干扰，现在它能如刀切般垂直对齐 */
+    .ttNum {
       color: #dfdfdf;
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums; 
+      letter-spacing: 0.5px;
+      text-align: right;
     }
   }
 }
 
-/* 🌟 弹窗底部的成就展示模块（去掉了左右分布，变为绝对居中的印章形态） */
 .ttAchievement {
-  padding-top: 8px;
-  margin-top: 2px;
+  padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.8rem;
   display: flex;
-  justify-content: center; /* 🌟 核心：横幅居中 */
+  justify-content: center; 
   align-items: center;
-  letter-spacing: 2px; /* 增加一点字间距，更有仪式感 */
+  letter-spacing: 2px; 
 }
 
 .runCard:hover .runTooltip {
@@ -258,7 +275,6 @@
   .runDistance { font-size: 1.35rem; }
   .tableContainer { margin-bottom: 60px; }
   
-  /* 在手机端屏幕较窄，恢复成一行一个卡片的瀑布流 */
   .cardList {
     grid-template-columns: 1fr;
   }
