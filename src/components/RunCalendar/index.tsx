@@ -295,7 +295,7 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
           </div>
         </div>
         
-        <div className={styles.weekdays}>{['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (<div key={i}>{d}</div>))}</div>
+        <div className={styles.weekdays}>{['日', '一', '二', '三', '四', '五', '六'].map((d, i) => (<div key={i}>{d}</div>))}</div>
         
         <div key={`${engine.displayYear}-${monthIndex}`} className={styles.grid} data-direction={direction}>
           {days.map((day, idx) => {

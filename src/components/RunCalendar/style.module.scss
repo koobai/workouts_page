@@ -148,6 +148,8 @@
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  gap: 2px; 
+  justify-items: center; 
   text-align: center;
   font-size: 0.7rem;
   color: #8E8E93;
@@ -158,6 +160,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
+  justify-items: center;
   animation-duration: 0.25s;
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
   animation-fill-mode: forwards;
