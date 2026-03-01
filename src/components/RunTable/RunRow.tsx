@@ -100,7 +100,6 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYe
   ];
   if (paceNum) stats.push({ label: isRide ? '均速' : '配速', num: paceNum, unit: paceUnit });
   
-  // 🌟 核心修改：将心率的 unit 改为了空字符串 ''
   if (heartRate && heartRate > 0) stats.push({ label: '心率', num: heartRate.toFixed(0), unit: '' });
 
   return (
@@ -118,18 +117,18 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYe
           <div className={styles.runDistance} style={{ color: themeColor }}>
             {distance}<span className={styles.distUnit}>km</span>
             
+            {/* 🌟 替换为新版的纯净无边框金属金奖牌 */}
             {isYearlyMax && (
-              <svg className={styles.badgeIcon} viewBox="0 0 36 36" fill="currentColor">
-                <circle cx="18" cy="18" r="16" fill="url(#listGoldGrad)" />
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" />
-                <path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" />
+              <svg className={styles.badgeIcon} viewBox="0 0 24 24" fill="none">
+                <path fill="url(#listGoldGrad)" d="M13 2h-2c-1.886 0-2.828 0-3.414.586S7 4.114 7 6v4h10V6c0-1.886 0-2.828-.586-3.414S14.886 2 13 2" opacity=".5"/>
+                <path fill="url(#listGoldGrad)" fillRule="evenodd" d="M12 22a8 8 0 1 0 0-16a8 8 0 0 0 0 16m0-11c-.284 0-.474.34-.854 1.023l-.098.176c-.108.194-.162.29-.246.354c-.085.064-.19.088-.4.135l-.19.044c-.738.167-1.107.25-1.195.532s.164.577.667 1.165l.13.152c.143.167.215.25.247.354s.021.215 0 .438l-.02.203c-.076.785-.114 1.178.115 1.352c.23.174.576.015 1.267-.303l.178-.082c.197-.09.295-.136.399-.136s.202.046.399.136l.178.082c.691.319 1.037.477 1.267.303s.191-.567.115-1.352l-.02-.203c-.021-.223-.032-.334 0-.438s.104-.187.247-.354l.13-.152c.503-.588.755-.882.667-1.165c-.088-.282-.457-.365-1.195-.532l-.19-.044c-.21-.047-.315-.07-.4-.135c-.084-.064-.138-.16-.246-.354l-.098-.176C12.474 11.34 12.284 11 12 11" clipRule="evenodd"/>
               </svg>
             )}
+            {/* 🌟 替换为新版的纯净无边框极光银奖牌 */}
             {isMonthlyMax && (
-              <svg className={styles.badgeIcon} viewBox="0 0 36 36" fill="currentColor">
-                <circle cx="18" cy="18" r="16" fill="url(#listBlueGrad)" />
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" />
-                <path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" />
+              <svg className={styles.badgeIcon} viewBox="0 0 24 24" fill="none">
+                <path fill="url(#listSilverGrad)" d="M13 2h-2c-1.886 0-2.828 0-3.414.586S7 4.114 7 6v4h10V6c0-1.886 0-2.828-.586-3.414S14.886 2 13 2" opacity=".5"/>
+                <path fill="url(#listSilverGrad)" fillRule="evenodd" d="M12 22a8 8 0 1 0 0-16a8 8 0 0 0 0 16m0-11c-.284 0-.474.34-.854 1.023l-.098.176c-.108.194-.162.29-.246.354c-.085.064-.19.088-.4.135l-.19.044c-.738.167-1.107.25-1.195.532s.164.577.667 1.165l.13.152c.143.167.215.25.247.354s.021.215 0 .438l-.02.203c-.076.785-.114 1.178.115 1.352c.23.174.576.015 1.267-.303l.178-.082c.197-.09.295-.136.399-.136s.202.046.399.136l.178.082c.691.319 1.037.477 1.267.303s.191-.567.115-1.352l-.02-.203c-.021-.223-.032-.334 0-.438s.104-.187.247-.354l.13-.152c.503-.588.755-.882.667-1.165c-.088-.282-.457-.365-1.195-.532l-.19-.044c-.21-.047-.315-.07-.4-.135c-.084-.064-.138-.16-.246-.354l-.098-.176C12.474 11.34 12.284 11 12 11" clipRule="evenodd"/>
               </svg>
             )}
           </div>
@@ -153,8 +152,9 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex, isYe
           ))}
         </div>
         
+        {/* 🌟 悬浮提示框里的文字也同步调整为了金属金 / 极光银 */}
         {(isYearlyMax || isMonthlyMax) && (
-          <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD700' : '#64D2FF' }}>
+          <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD447' : '#E5E5EA' }}>
             <span>{isYearlyMax ? '年度单次最远' : '月度单次最远'}</span>
           </div>
         )}

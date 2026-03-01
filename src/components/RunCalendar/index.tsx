@@ -247,7 +247,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
   const handlePrevMonth = () => { setDirection(-1); setMonthIndex(prev => Math.max(0, prev - 1)); };
   const handleNextMonth = () => { setDirection(1); setMonthIndex(prev => Math.min(11, prev + 1)); };
 
-  /* 🌟 核心修改 1：平移每月第一天的前置空格数逻辑（适配周一起始） */
   const rawFirstDay = new Date(engine.displayYear, monthIndex, 1).getDay();
   const firstDayOfMonth = rawFirstDay === 0 ? 6 : rawFirstDay - 1; 
 
@@ -257,10 +256,18 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
   return (
     <div className={styles.boardContainer}>
       
+      {/* 🌟 渐变色定义中心 */}
       <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
         <defs>
-          <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FFD700" /><stop offset="100%" stopColor="#F59E0B" /></linearGradient>
-          <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#64D2FF" /><stop offset="100%" stopColor="#0A84FF" /></linearGradient>
+          <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FFD447" /> 
+            <stop offset="100%" stopColor="#D99414" /> 
+          </linearGradient>
+          {/* 🌟 银灰色渐变：经典的成就配色 */}
+          <linearGradient id="silverGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#E5E5EA" />
+            <stop offset="100%" stopColor="#98989D" />
+          </linearGradient>
         </defs>
       </svg>
 
@@ -297,7 +304,6 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
           </div>
         </div>
         
-        {/* 🌟 核心修改 2：替换表头，一二三四五六日排排坐 */}
         <div className={styles.weekdays}>{['一', '二', '三', '四', '五', '六', '日'].map((d, i) => (<div key={i}>{d}</div>))}</div>
         
         <div key={`${engine.displayYear}-${monthIndex}`} className={styles.grid} data-direction={direction}>
@@ -315,7 +321,15 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
             const isMaxDay = isYearlyMax || isMonthlyMax;
 
             return (
-              <div key={dateStr} className={`${styles.dayCell} ${hasRun ? styles.hasRun : ''} ${isSelected ? styles.selected : ''} ${isMaxDay ? styles.maxDay : ''}`} onClick={() => { if (hasRun && primaryRun) { if (isSelected) { locateActivity([]); setRunIndex(-1); } else { locateActivity([primaryRun.run_id]); setRunIndex(engine.runIdIndexMap.get(primaryRun.run_id) ?? -1); } } }} style={{ backgroundColor: (isSelected && !isMaxDay) ? `${runColor}26` : undefined, boxShadow: (isSelected && !isMaxDay) ? `inset 0 0 0 1px ${runColor}` : undefined }}>
+              <div 
+                key={dateStr} 
+                className={`${styles.dayCell} ${hasRun ? styles.hasRun : ''} ${isSelected ? styles.selected : ''} ${isMaxDay ? styles.maxDay : ''}`} 
+                onClick={() => { if (hasRun && primaryRun) { if (isSelected) { locateActivity([]); setRunIndex(-1); } else { locateActivity([primaryRun.run_id]); setRunIndex(engine.runIdIndexMap.get(primaryRun.run_id) ?? -1); } } }} 
+                style={{ 
+                  backgroundColor: (isSelected && !isMaxDay) ? `${runColor}26` : undefined, 
+                  boxShadow: (isSelected && !isMaxDay) ? `inset 0 0 0 1px ${runColor}` : undefined 
+                }}
+              >
                 {hasRun && (
                   <div className={styles.runTooltip}>
                     <div className={styles.ttList}>
@@ -327,7 +341,7 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                       ))}
                     </div>
                     {isMaxDay && (
-                      <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD700' : '#64D2FF' }}>
+                      <div className={styles.ttAchievement} style={{ color: isYearlyMax ? '#FFD447' : '#E5E5EA' }}>
                         <span>{isYearlyMax ? '年度最远' : '月度最远'}</span>
                         <span className={styles.ttVal}>{(dayRuns.reduce((sum, r) => sum + r.distance, 0) / 1000).toFixed(1)} <small>km</small></span>
                       </div>
@@ -336,9 +350,42 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                 )}
 
                 {isMaxDay ? (
-                  isYearlyMax ? (<svg className={styles.yearlyBadge} viewBox="0 0 36 36" fill="currentColor"><circle cx="18" cy="18" r="16" fill="url(#goldGrad)" /><circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" /><path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" /></svg>) : 
-                  (<svg className={styles.monthlyBadge} viewBox="0 0 36 36" fill="currentColor"><circle cx="18" cy="18" r="16" fill="url(#blueGrad)" /><circle cx="18" cy="18" r="14" fill="none" stroke="#FFF" strokeWidth="0.8" opacity="0.4" /><path d="M18 8L20.4 12.8L25.8 13.6L22 17.5L22.9 22.9L18 20.5L13.1 22.9L14 17.5L10.2 13.6L15.6 12.8L18 8Z" fill="#FFF" /></svg>)
-                ) : (<span className={styles.dateNum} style={{ color: hasRun ? runColor : 'inherit', opacity: hasRun ? 1 : 0.3, fontWeight: hasRun ? 800 : 500, textShadow: hasRun ? `0 0 8px ${runColor}40` : 'none' }}>{day}</span>)}
+                  isYearlyMax ? (
+                    /* 🌟 年度勋章：金色奖牌图标 */
+                    <svg className={styles.yearlyBadge} viewBox="0 0 24 24" fill="none">
+                      <path 
+                        fill="url(#goldGrad)" 
+                        d="M13 2h-2c-1.886 0-2.828 0-3.414.586S7 4.114 7 6v4h10V6c0-1.886 0-2.828-.586-3.414S14.886 2 13 2" 
+                        opacity=".5"
+                      />
+                      <path 
+                        fill="url(#goldGrad)" 
+                        fillRule="evenodd" 
+                        d="M12 22a8 8 0 1 0 0-16a8 8 0 0 0 0 16m0-11c-.284 0-.474.34-.854 1.023l-.098.176c-.108.194-.162.29-.246.354c-.085.064-.19.088-.4.135l-.19.044c-.738.167-1.107.25-1.195.532s.164.577.667 1.165l.13.152c.143.167.215.25.247.354s.021.215 0 .438l-.02.203c-.076.785-.114 1.178.115 1.352c.23.174.576.015 1.267-.303l.178-.082c.197-.09.295-.136.399-.136s.202.046.399.136l.178.082c.691.319 1.037.477 1.267.303s.191-.567.115-1.352l-.02-.203c-.021-.223-.032-.334 0-.438s.104-.187.247-.354l.13-.152c.503-.588.755-.882.667-1.165c-.088-.282-.457-.365-1.195-.532l-.19-.044c-.21-.047-.315-.07-.4-.135c-.084-.064-.138-.16-.246-.354l-.098-.176C12.474 11.34 12.284 11 12 11" 
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ) : (
+                    /* 🌟 月度勋章：银灰色奖牌图标 */
+                    <svg className={styles.monthlyBadge} viewBox="0 0 24 24" fill="none">
+                      <path 
+                        fill="url(#silverGrad)" 
+                        d="M13 2h-2c-1.886 0-2.828 0-3.414.586S7 4.114 7 6v4h10V6c0-1.886 0-2.828-.586-3.414S14.886 2 13 2" 
+                        opacity=".5"
+                      />
+                      <path 
+                        fill="url(#silverGrad)" 
+                        fillRule="evenodd" 
+                        d="M12 22a8 8 0 1 0 0-16a8 8 0 0 0 0 16m0-11c-.284 0-.474.34-.854 1.023l-.098.176c-.108.194-.162.29-.246.354c-.085.064-.19.088-.4.135l-.19.044c-.738.167-1.107.25-1.195.532s.164.577.667 1.165l.13.152c.143.167.215.25.247.354s.021.215 0 .438l-.02.203c-.076.785-.114 1.178.115 1.352c.23.174.576.015 1.267-.303l.178-.082c.197-.09.295-.136.399-.136s.202.046.399.136l.178.082c.691.319 1.037.477 1.267.303s.191-.567.115-1.352l-.02-.203c-.021-.223-.032-.334 0-.438s.104-.187.247-.354l.13-.152c.503-.588.755-.882.667-1.165c-.088-.282-.457-.365-1.195-.532l-.19-.044c-.21-.047-.315-.07-.4-.135c-.084-.064-.138-.16-.246-.354l-.098-.176C12.474 11.34 12.284 11 12 11" 
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )
+                ) : (
+                  <span className={styles.dateNum} style={{ color: hasRun ? runColor : 'inherit', opacity: hasRun ? 1 : 0.3, fontWeight: hasRun ? 800 : 500, textShadow: hasRun ? `0 0 8px ${runColor}40` : 'none' }}>
+                    {day}
+                  </span>
+                )}
                 {!isMaxDay && dayRuns.length > 1 && (<div className={styles.dotsRow}>{dayRuns.map((r) => (<span key={r.run_id} className={styles.tinyDot} style={{ backgroundColor: colorFromType(r.type) }} />))}</div>)}
               </div>
             );

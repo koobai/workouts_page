@@ -171,13 +171,13 @@
   font-style: normal;
 }
 
+/* 🌟 修改了这里：删除了发光滤镜，尺寸微调配合新奖牌 */
 .badgeIcon {
-  width: 20px;
-  height: 20px;
+  width: 24px; 
+  height: 24px;
   margin-left: 8px;
-  color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
   align-self: center;
+  flex-shrink: 0;
 }
 
 /* =========================================
@@ -207,16 +207,15 @@
   .ttList {
     display: flex;
     flex-direction: column;
-    gap: 8px; /* 增加行间距，让标签不拥挤 */
+    gap: 8px; 
   }
 
   .ttItem {
     display: flex;
     justify-content: space-between;
-    align-items: center; /* 垂直居中对齐 */
+    align-items: center; 
     gap: 32px; 
 
-    /* 🌟 左侧：标题与标签组合 */
     .ttNameWrap {
       display: flex;
       align-items: center;
@@ -228,17 +227,15 @@
       font-size: 0.75rem;
     }
 
-    /* 🌟 单位做成独立的胶囊标签，复用月字背景逻辑 */
     .ttUnitTag {
       padding: 2px 6px;
-      background: rgba(255, 255, 255, 0.05); /* 微弱的白底 */
+      background: rgba(255, 255, 255, 0.05); 
       border-radius: 4px;
       color: #8E8E93;
       font-size: 0.65rem;
       letter-spacing: 0.5px;
     }
 
-    /* 🌟 右侧：纯粹的数字，因为没有单位干扰，现在它能如刀切般垂直对齐 */
     .ttNum {
       color: #dfdfdf;
       font-size: 0.9rem;

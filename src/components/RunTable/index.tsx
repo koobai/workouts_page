@@ -87,16 +87,16 @@ const RunTable = ({
   return (
     <div className={styles.tableContainer}>
       
-      {/* 🌟 注入勋章的全局渐变色（避免依赖其他组件） */}
+      {/* 🌟 注入勋章的全局渐变色（同步日历的高级金属配色） */}
       <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
         <defs>
           <linearGradient id="listGoldGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#F59E0B" />
+            <stop offset="0%" stopColor="#FFD447" />
+            <stop offset="100%" stopColor="#D99414" />
           </linearGradient>
-          <linearGradient id="listBlueGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#64D2FF" />
-            <stop offset="100%" stopColor="#0A84FF" />
+          <linearGradient id="listSilverGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#E5E5EA" />
+            <stop offset="100%" stopColor="#98989D" />
           </linearGradient>
         </defs>
       </svg>

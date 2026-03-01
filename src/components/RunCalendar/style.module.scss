@@ -191,8 +191,7 @@
 
   &.hasRun {
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.02);
-    &:hover { background: rgba(255, 255, 255, 0.08); }
+    &:hover { background: rgba(255, 255, 255, 0.04); }
   }
 }
 
@@ -507,17 +506,14 @@
 
 .yearlyBadge,
 .monthlyBadge {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   z-index: 5;
   pointer-events: none;
   color: transparent;
   margin-bottom: 2px;
   animation: badgePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-
-.yearlyBadge { filter: drop-shadow(0 2px 6px rgba(245, 158, 11, 0.4)) !important; }
-.monthlyBadge { filter: drop-shadow(0 2px 6px rgba(10, 132, 255, 0.4)); }
 
 @keyframes badgePopIn {
   0% { opacity: 0; transform: scale(0) rotate(-45deg); }
