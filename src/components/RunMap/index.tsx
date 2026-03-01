@@ -385,7 +385,7 @@ const RunMap = ({
             <div className={styles.detailStatBlock}>
               <span className={styles.statLabel}>心率</span>
               <span className={styles.statVal}>
-                {heartRate ? Math.round(heartRate) : '--'}<small>bpm</small>
+                {heartRate ? Math.round(heartRate) : '--'}
               </span>
             </div>
           </div>
