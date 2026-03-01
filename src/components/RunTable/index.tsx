@@ -64,12 +64,10 @@ const RunTable = ({
                 className={`${styles.filterPill} ${filterMonth === m ? styles.activePill : ''}`}
                 onClick={() => { setFilterMonth(m); setRunIndex(-1); }}
               >
-                {/* 🌟 直接渲染 01, 02 这种纯粹的数字格式 */}
                 {m}
               </div>
             ))}
             
-            {/* 🌟 在列表的最后/最右侧加上“月”字标签 */}
             <div className={styles.monthLabel}>月</div>
           </div>
         )}

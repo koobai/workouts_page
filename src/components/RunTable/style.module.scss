@@ -71,11 +71,11 @@
 }
 
 /* =========================================
-   2. 独立的卡片列表 
+   2. 独立的卡片列表 (🌟 新增 Grid 双列布局)
 ========================================= */
 .cardList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   width: 100%;
 }
@@ -89,6 +89,7 @@
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.03);
+  position: relative; /* 🌟 核心：给 Tooltip 悬浮定位提供基准点 */
 
   &:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -102,7 +103,7 @@
 }
 
 /* =========================================
-   3. 行内排版：黄金四角
+   3. 行内排版：左右分置
 ========================================= */
 .iconRing {
   width: 40px;
@@ -120,17 +121,21 @@
 .cardContent {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px; 
+  justify-content: space-between; /* 左右元素推开 */
+  align-items: center; /* 上下完美居中 */
   min-width: 0; 
 }
 
-.topRow {
+.leftInfo {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  width: 100%;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rightInfo {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .runName {
@@ -145,15 +150,8 @@
 .runDate {
   font-size: 0.8rem;
   color: #dfdfdf; 
+  font-family: 'JetBrainsMono', monospace;
   flex-shrink: 0;
-  margin-left: 10px;
-}
-
-.bottomRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end; 
-  width: 100%;
 }
 
 .runDistance {
@@ -161,7 +159,6 @@
   line-height: 1;
   letter-spacing: -0.5px;
   flex-shrink: 0;
-  margin-right: 10px;
   font-weight: 800; 
   font-style: italic;
 }
@@ -175,48 +172,74 @@
   font-style: normal;
 }
 
-.runStats {
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap; 
-  justify-content: flex-end;
-  gap: 8px;
-  text-align: right;
-}
-
-.statItem {
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: baseline;
-}
-
-/* 🌟 让中文标签变成极其低调的暗灰色，不抢戏 */
-.statLabel {
-  color: #666666; 
-  margin-right: 4px;
-  font-size: 0.7rem;
-}
-
-/* 🌟 让核心数据变成明亮的灰白色，并使用等宽数字体，瞬间拉开层次！ */
-.statValue {
-  color: #dfdfdf;
-  opacity: 0.8;
-}
-
 .fire {
   font-size: 0.75rem;
-  margin-left: 2px;
+  margin-left: 4px;
 }
 
-/* 手机端防拥挤微调 */
+/* =========================================
+   4. 悬浮提示框 Tooltip (复用日历样式)
+========================================= */
+.runTooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 14px;
+  width: max-content;
+  z-index: 100;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+
+  .ttList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ttItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    font-size: 0.85rem;
+
+    .ttVal {
+      color: #dfdfdf;
+      font-family: 'JetBrainsMono', monospace;
+      font-weight: 500;
+    }
+  }
+}
+
+.runCard:hover .runTooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* =========================================
+   📱 手机端适配
+========================================= */
 @media (max-width: 768px) {
   .controlsArea { padding: 12px; }
   .runCard { padding: 12px; }
   .iconRing { width: 38px; height: 38px; font-size: 1.15rem; margin-right: 12px; }
   .runDistance { font-size: 1.35rem; }
-  .runStats { font-size: 0.65rem; }
-.tableContainer {
-  margin-bottom: 60px;
-}
+  .tableContainer { margin-bottom: 60px; }
+  
+  /* 🌟 在手机端，屏幕较窄，恢复成一行一个卡片的瀑布流 */
+  .cardList {
+    grid-template-columns: 1fr;
+  }
 }

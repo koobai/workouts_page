@@ -38,7 +38,6 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
   const timePart = dateStr.length >= 16 ? dateStr.slice(11, 16) : ''; 
 
   const getActivityIcon = () => {
-    // 1. 骑行
     if (RIDE_TYPES.has(type)) {
       return (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 -1 26 26">
@@ -46,7 +45,6 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
         </svg>
       );
     }
-    // 2. 步行/徒步
     if (WALK_TYPES.has(type)) {
       return (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48">
@@ -57,7 +55,6 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
         </svg>
       );
     }
-    // 3. 跑步 (🌟 你的新 SVG 放在这里)
     if (RUN_TYPES.has(type)) {
       return (
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
@@ -68,10 +65,9 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
     }
     if (SWIM_TYPES.has(type)) {
       return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 13c.5.5 2.13-.112 3.262-.5c1.46-.5 3.238 0 2.738-.5l-2-2s-4.5 2.5-4 3m-9 7c2 0 3-1 5-1s3 1 5 1s3-1 5-1s3 1 5 1M2 16c2 0 3-1 5-1s3 1 5 1s3-1 5-1s3 1 5 1M17.5 4l-5.278 3l3.278 3.5L12 12m7.222-2a1 1 0 1 0 0-2a1 1 0 0 0 0 2"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 13c.5.5 2.13-.112 3.262-.5c1.46-.5 3.238 0 2.738-.5l-2-2s-4.5 2.5-4 3m-9 7c2 0 3-1 5-1s3 1 5 1s3-1 5-1s3 1 5 1M2 16c2 0 3-1 5-1s3 1 5 1s3-1 5-1s3 1 5 1M17.5 4l-5.278 3l3.278 3.5L12 12m7.222-2a1 1 0 1 0 0-2a1 1 0 0 0 0 2"/></svg>
       );
     }
-    // 4. 游泳及其他
     return '🏅';
   };
 
@@ -82,7 +78,6 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
     paceStr = paceParts.join('');
   }
 
-  // 🌟 核心：将字符串拆分成 标签 和 数据 对象
   const stats = [{ label: '用时', value: runTime }];
   if (paceStr) stats.push({ label: '配速', value: paceStr });
   if (heartRate && heartRate > 0) stats.push({ label: '心率', value: heartRate.toFixed(0), isHeart: true });
@@ -97,34 +92,34 @@ const RunRow = ({ elementIndex, locateActivity, run, runIndex, setRunIndex }: IR
       </div>
 
       <div className={styles.cardContent}>
-        <div className={styles.topRow}>
-          <span className={styles.runName}>{formatRunName(run.name, run.start_date_local, run.type)}</span>
-          <span className={styles.runDate}>{datePart} {timePart}</span>
-        </div>
-
-        <div className={styles.bottomRow}>
+        {/* 🌟 左侧信息：保持名称和里程 */}
+        <div className={styles.leftInfo}>
+          <div className={styles.runName}>{formatRunName(run.name, run.start_date_local, run.type)}</div>
           <div className={styles.runDistance} style={{ color: themeColor }}>
             {distance}<span className={styles.distUnit}>km</span>
           </div>
-          
-          <div className={styles.runStats}>
-            {/* 🌟 核心：分开渲染标签和数据 */}
-            {stats.map((s, i) => (
-              <React.Fragment key={i}>
-                <span className={styles.statItem}>
-                  <span className={styles.statLabel}>{s.label}</span>
-                  <span 
-                    className={styles.statValue} 
-                    style={s.isHeart ? { color: getHeartRateColor(heartRate) } : {}}
-                  >
-                    {s.value}
-                  </span>
-                  {s.isHeart && heartRate >= 130 && <span className={styles.fire}>🔥</span>}
-                </span>
-              </React.Fragment>
-            ))}
-          </div>
+        </div>
 
+        {/* 🌟 右侧信息：仅保留时间和垂直居中 */}
+        <div className={styles.rightInfo}>
+          <div className={styles.runDate}>{datePart} {timePart}</div>
+        </div>
+      </div>
+
+      {/* 🌟 悬浮提示框 (Tooltip) */}
+      <div className={styles.runTooltip}>
+        <div className={styles.ttList}>
+          {stats.map((s, i) => (
+            <div key={i} className={styles.ttItem}>
+              <span className={styles.ttName} style={{ color: '#8E8E93', fontSize: '0.8rem' }}>
+                {s.label}
+              </span>
+              <span className={styles.ttVal} style={s.isHeart ? { color: getHeartRateColor(heartRate) } : {}}>
+                {s.value}
+                {s.isHeart && heartRate >= 130 && <span className={styles.fire}>🔥</span>}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
