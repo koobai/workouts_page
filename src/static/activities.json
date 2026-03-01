@@ -4078,5 +4078,20 @@
 "average_speed": 5.606,
 "source": "strava",
 "streak": 2
+},
+{
+"run_id": 17564000953,
+"name": "\u508d\u665a\u884c\u8d70",
+"distance": 2121.9,
+"moving_time": "0:22:37",
+"type": "Hike",
+"start_date": "2026-03-01 11:53:05+00:00",
+"start_date_local": "2026-03-01 19:53:05",
+"location_country": "\uff0800013210200021\uff09\u56de\u6536\u7bb1\u5230\u4e1c\u5357\u95e8, \u91d1\u90fd\u590f\u5bab, \u4e34\u5e73\u8857\u9053, \u4e34\u5e73\u533a, \u676d\u5dde\u5e02, \u6d59\u6c5f\u7701, \u4e2d\u56fd",
+"summary_polyline": "yivxDid_}UJh@JhBAZIVKHOFkDr@s@Pa@R_Av@OFQ@OEMQQa@c@uAg@gAQ]s@{@a@m@e@}@Ww@CYCkA]_BKw@IyAEmBi@sBWuAYmAAMHMNMb@YZMVAh@`@NDN?VIbBcAZ_@FOBSG]Ws@AKBKJMZWlBeA`@KJ?JFNTt@bBpCvGzA|DrBxEbAhCTt@DREPOP",
+"average_heartrate": 107.0,
+"average_speed": 1.564,
+"source": "strava",
+"streak": 3
 }
 ]
