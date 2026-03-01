@@ -10,7 +10,14 @@ img::selection {
 img::-moz-selection { 
   background: transparent; 
 }
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
 
+* {
+  box-sizing: border-box;
+}
 /* 🌟 1. 整体底色深空灰 (Apple Dark Mode) */
 body {
   font-family: $global-font-family;
@@ -26,6 +33,7 @@ body {
 iframe { 
   border: none; 
 }
+
 
 // ------------------------------------
 // 基础文本元素主题
