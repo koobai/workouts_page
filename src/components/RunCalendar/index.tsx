@@ -386,7 +386,9 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
                     {day}
                   </span>
                 )}
-                {!isMaxDay && dayRuns.length > 1 && (<div className={styles.dotsRow}>{dayRuns.map((r) => (<span key={r.run_id} className={styles.tinyDot} style={{ backgroundColor: colorFromType(r.type) }} />))}</div>)}
+                {!isMaxDay && dayRuns.length > 1 && (
+                  <span className={styles.multiDot} />
+                )}
               </div>
             );
           })}
