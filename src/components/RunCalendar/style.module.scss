@@ -15,7 +15,7 @@
 ========================================= */
 .globalSection {
   position: relative;
-  z-index: 1; /* 第一层：最底层 */
+  z-index: 1; 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -47,7 +47,8 @@
     color: #32D74B;
     line-height: 1;
     letter-spacing: -1px;
-    text-shadow: 0 0 20px rgba(50, 215, 75, 0.15); 
+    text-shadow: 0 0 20px rgba(50, 215, 75, 0.15);
+    font-variant-numeric: tabular-nums; 
   }
 
   .unit {
@@ -93,7 +94,7 @@
 ========================================= */
 .calendarSection {
   position: relative;
-  z-index: 2; /* 第二层：日历弹窗可以完美盖住上面的全局面板 */
+  z-index: 2; 
   display: flex;
   flex-direction: column;
   background: #1C1C1E;
@@ -222,7 +223,7 @@
 ========================================= */
 .monthlyInsights {
   position: relative;
-  z-index: 3; /* 第三层：最高层，弹窗可以盖住上面的日历 */
+  z-index: 3; 
   display: flex;
   gap: 10px; 
   align-items: stretch; 
@@ -345,7 +346,7 @@
 }
 
 /* =========================================
-   4. 背景呼吸曲线 (Sparkline - 属于顶层全局面板)
+   🌟 4. 背景呼吸曲线 (完美解决结尾卡顿)
 ========================================= */
 .sparkline {
   position: absolute;
@@ -358,7 +359,8 @@
 }
 
 .sparklineFill {
-  animation: fadeUp 1s ease-out forwards;
+  opacity: 0; 
+  animation: fadeUp 1.2s cubic-bezier(0.165, 0.84, 0.44, 1) 0.2s forwards;
   transform-origin: bottom;
 }
 
@@ -367,14 +369,18 @@
   stroke-width: 1;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.2;
-  stroke-dasharray: 400;
-  stroke-dashoffset: 400;
-  animation: drawLine 5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  opacity: 0; 
+  /* 🌟 核心：配合 js 里的 pathLength="100"，把这里的总长度固定为 100 */
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: drawLine 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s forwards;
 }
 
 @keyframes drawLine {
-  to { stroke-dashoffset: 0; }
+  /* 🌟 动画现在只负责从 100% 匀速画到 0%，不管曲线有多陡峭，都不会再出现溢出闪现了！ */
+  0% { stroke-dashoffset: 100; opacity: 0; }
+  5% { opacity: 0.2; } 
+  100% { stroke-dashoffset: 0; opacity: 0.2; }
 }
 
 @keyframes fadeUp {
@@ -456,7 +462,6 @@
 }
 
 /* 🌟 智能边缘避让：处理最左侧和最右侧防截断 */
-/* 1. 日历最右侧两列（周五、周六）：改变锚点，向左偏 */
 .dayCell:nth-child(7n) .runTooltip,
 .dayCell:nth-child(7n - 1) .runTooltip {
   left: auto;
@@ -464,21 +469,18 @@
   transform: translateX(0) translateY(4px);
 }
 
-/* 2. 日历最左侧两列（周日、周一）：改变锚点，向右偏 */
 .dayCell:nth-child(7n + 1) .runTooltip,
 .dayCell:nth-child(7n + 2) .runTooltip {
   left: -15px; 
   transform: translateX(0) translateY(4px);
 }
 
-/* 3. 时段卡片（位于屏幕左侧）：最左边两个柱子往右偏 */
 .barWrapper:nth-child(1) .runTooltip,
 .barWrapper:nth-child(2) .runTooltip {
   left: -10px;
   transform: translateX(0) translateY(4px);
 }
 
-/* 4. 心率卡片（位于屏幕右侧）：最右边两个柱子往左偏 */
 .zoneCol:nth-last-child(1) .runTooltip,
 .zoneCol:nth-last-child(2) .runTooltip {
   left: auto;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Activity, RunIds, colorFromType, formatRunName } from '@/utils/utils';
 import styles from './style.module.scss';
 
@@ -13,7 +13,6 @@ interface IRunCalendarProps {
 const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide']);
 const RUN_TYPES = new Set(['Run', 'Hike', 'TrailRun', 'Walk']);
 
-// 🌟 为精准年份而生的极速数据引擎（已卸载冗余的卡路里和脂肪计算）
 function useRunDataEngine(runs: Activity[], year: string, monthIndex: number) {
   const displayYear = Number(year);
 
@@ -174,6 +173,9 @@ function useRunDataEngine(runs: Activity[], year: string, monthIndex: number) {
 const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRunCalendarProps) => {
   const [monthIndex, setMonthIndex] = useState<number>(new Date().getMonth());
   const [direction, setDirection] = useState<number>(0);
+  
+  const [animatedDist, setAnimatedDist] = useState(0);
+  const prevDistRef = useRef(0);
 
   const engine = useRunDataEngine(runs, year, monthIndex);
 
@@ -183,6 +185,40 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
       setDirection(0);
     }
   }, [engine.normalizedRuns]);
+
+  useEffect(() => {
+    const targetDist = engine.globalData.stats.totalDist;
+    const startDist = prevDistRef.current; 
+    
+    if (targetDist === startDist) {
+      setAnimatedDist(targetDist);
+      return;
+    }
+
+    let startTime: number;
+    let animationFrameId: number;
+    const duration = 1000; 
+
+    const animate = (time: number) => {
+      if (!startTime) startTime = time;
+      const progress = time - startTime;
+      const percent = Math.min(progress / duration, 1);
+      
+      const easeOut = 1 - Math.pow(1 - percent, 4); 
+
+      setAnimatedDist(startDist + (targetDist - startDist) * easeOut);
+
+      if (progress < duration) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        setAnimatedDist(targetDist); 
+        prevDistRef.current = targetDist; 
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [engine.globalData.stats.totalDist]);
 
   const sparklinePath = useMemo(() => {
     const data = engine.globalData.sparklineData;
@@ -230,14 +266,15 @@ const RunCalendar = ({ runs, locateActivity, runIndex, setRunIndex, year }: IRun
           <svg key={year} className={styles.sparkline} viewBox="0 0 200 40" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
             <defs><linearGradient id="sparklineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#32D74B" stopOpacity="0.25" /><stop offset="100%" stopColor="#32D74B" stopOpacity="0" /></linearGradient></defs>
             <path d={`${sparklinePath} L 200,40 L 0,40 Z`} fill="url(#sparklineGrad)" stroke="none" className={styles.sparklineFill} />
-            <path d={sparklinePath} fill="none" className={styles.sparklineLine} />
+            {/* 🌟 核心防闪烁魔法：pathLength="100" 强制将折线路径总长标准化为 100 */}
+            <path d={sparklinePath} fill="none" className={styles.sparklineLine} pathLength="100" />
           </svg>
         )}
         
         <div className={styles.globalTitle}>年度总里程</div>
 
         <div className={styles.globalMainStat}>
-          <span className={styles.val}>{engine.globalData.stats.totalDist.toFixed(1)}</span>
+          <span className={styles.val}>{animatedDist.toFixed(1)}</span>
           <span className={styles.unit}>KM</span>
         </div>
         
