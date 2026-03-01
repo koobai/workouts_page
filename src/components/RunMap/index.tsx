@@ -1,6 +1,7 @@
 import MapboxLanguage from '@mapbox/mapbox-gl-language';
 import React, {useRef, useCallback, useState, useEffect, useMemo} from 'react';
 import Map, {Layer, Source, FullscreenControl, NavigationControl, MapRef} from 'react-map-gl';
+import {MapInstance} from "react-map-gl/src/types/lib";
 import useActivities from '@/hooks/useActivities';
 import {
   MAP_LAYER_LIST,
@@ -14,9 +15,8 @@ import {
   LINE_OPACITY,
   MAP_HEIGHT,
 } from '@/utils/const';
-import { Coordinate, IViewState, geoJsonForMap } from '@/utils/utils';
+import { Coordinate, IViewState, geoJsonForMap, colorFromType, formatRunTime, formatSpeedOrPace } from '@/utils/utils';
 import RunMarker from './RunMarker';
-import RunMapButtons from './RunMapButtons';
 import styles from './style.module.scss';
 import { FeatureCollection } from 'geojson';
 import { RPGeometry } from '@/static/run_countries';
@@ -30,6 +30,8 @@ interface IRunMapProps {
   geoData: FeatureCollection<RPGeometry>;
   thisYear: string;
 }
+
+const RIDE_TYPES = new Set(['Ride', 'VirtualRide', 'EBikeRide']);
 
 const calculateBearing = (start: number[], end: number[]) => {
   const PI = Math.PI;
@@ -51,9 +53,10 @@ const RunMap = ({
   geoData,
   thisYear,
 }: IRunMapProps) => {
-  const { countries, provinces } = useActivities();
+  const { runs, activities, countries, provinces } = useActivities() as any;
+  const allRuns = runs || activities || []; 
+  
   const mapRef = useRef<MapRef>();
-
   const [animationProgress, setAnimationProgress] = useState(0);
 
   useEffect(() => {
@@ -227,18 +230,47 @@ const RunMap = ({
     }
   }
 
-  const isSingleRun =
-    geoData.features.length === 1 &&
-    geoData.features[0].geometry.coordinates.length;
+  const isSingleRun = geoData.features.length === 1 && geoData.features[0].geometry.coordinates.length;
+  
   let startLon = 0;
   let startLat = 0;
   let endLon = 0;
   let endLat = 0;
+  
+  let runProps: any = null;
+  let fullRun: any = null;
+
   if (isSingleRun) {
     const points = geoData.features[0].geometry.coordinates as Coordinate[];
     [startLon, startLat] = points[0];
     [endLon, endLat] = points[points.length - 1];
+    
+    runProps = geoData.features[0].properties;
+
+    const targetId = runProps.run_id || geoData.features[0].id;
+    if (targetId) {
+      fullRun = allRuns.find((r: any) => String(r.run_id) === String(targetId) || String(r.id) === String(targetId));
+    }
+    if (!fullRun && runProps.start_date_local) {
+      fullRun = allRuns.find((r: any) => r.start_date_local === runProps.start_date_local);
+    }
   }
+
+  // 🌟 1. 统一提取各项数据
+  const distance = fullRun?.distance ?? runProps?.distance ?? 0;
+  const movingTime = fullRun?.moving_time ?? runProps?.moving_time;
+  const averageSpeed = fullRun?.average_speed ?? runProps?.average_speed;
+  const heartRate = fullRun?.average_heartrate ?? runProps?.average_heartrate;
+  const displayDate = (fullRun?.start_date_local || runProps?.start_date_local || '').slice(0, 10);
+  
+  // 🌟 2. 核心修复：拿到最准确的 type，再去计算颜色，彻底解决全绿 Bug
+  const type = fullRun?.type ?? runProps?.type ?? 'Run';
+  const isRide = RIDE_TYPES.has(type);
+  const runColor = colorFromType(type) || runProps?.color || '#32D74B';
+
+  const runTimeStr = movingTime ? formatRunTime(movingTime) : '--:--';
+  const paceParts = averageSpeed ? formatSpeedOrPace(averageSpeed, type) : null;
+
   let dash = USE_DASH_LINE && !isSingleRun && !isBigMap ? [2, 2] : [2, 0];
   const onMove = React.useCallback(({ viewState }: { viewState: IViewState }) => {
     setViewState(viewState);
@@ -309,9 +341,56 @@ const RunMap = ({
         <RunMarker startLat={startLat} startLon={startLon} endLat={endLat} endLon={endLon} />
       )}
       
-      {/* 🌟 核心排版：全部移到左边 (去掉了灯光控件) */}
       <FullscreenControl position="top-left" />
       <NavigationControl showCompass={false} position="bottom-left" />
+
+      {isSingleRun && runProps && (
+        <div className={styles.runDetailCard}>
+          <div className={styles.detailName}>
+            <span>{runProps.name}</span>
+            {displayDate && <span className={styles.detailDate}>{displayDate}</span>}
+          </div>
+          <div className={styles.detailStatsRow}>
+            {/* 🌟 里程应用准确的运动类型颜色 */}
+            <div className={styles.detailStatBlock}>
+              <span className={styles.statLabel}>里程</span>
+              <span className={styles.statVal} style={{ color: runColor }}>
+                {(distance / 1000).toFixed(2)}<small>km</small>
+              </span>
+            </div>
+            <div className={styles.detailStatBlock}>
+              <span className={styles.statLabel}>用时</span>
+              <span className={styles.statVal}>
+                {runTimeStr}
+              </span>
+            </div>
+            <div className={styles.detailStatBlock}>
+              <span className={styles.statLabel}>{isRide ? '均速' : '配速'}</span>
+              <span className={styles.statVal}>
+                {paceParts ? (
+                  Array.isArray(paceParts) ? (
+                    <>{paceParts[0]}<small>{paceParts[1]}</small></>
+                  ) : (
+                    typeof paceParts === 'string' && paceParts.includes('km/h') ? (
+                      <>{paceParts.replace(/km\/h/i, '').trim()}<small>km/h</small></>
+                    ) : (
+                      paceParts.replace(' ', '')
+                    )
+                  )
+                ) : (
+                  "-'-''"
+                )}
+              </span>
+            </div>
+            <div className={styles.detailStatBlock}>
+              <span className={styles.statLabel}>心率</span>
+              <span className={styles.statVal}>
+                {heartRate ? Math.round(heartRate) : '--'}<small>bpm</small>
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </Map>
   );
 };

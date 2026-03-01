@@ -18,7 +18,106 @@
   cursor: pointer;
 }
 
-@media (max-width:768px){
+/* =========================================
+   🌟 单次运动详情悬浮面板
+========================================= */
+.runDetailCard {
+  position: absolute;
+  bottom: 10px; 
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: max-content;
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px; 
+  padding: 12px; 
+  display: flex;
+  flex-direction: column;
+  gap: 8px; 
+  z-index: 5;
+  box-shadow: none; 
+  animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  user-select: none;
+  white-space: nowrap; 
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.detailName {
+  font-size: 0.7rem; 
+  color: #dfdfdf;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  line-height: 1.2;
+}
+
+.detailDate {
+  font-size: 0.55rem;
+  color: #8E8E93;
+  font-weight: normal;
+  font-family: monospace;
+}
+
+.detailStatsRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px; 
+}
+
+.detailStatBlock {
+  display: flex;
+  flex-direction: column;
+  /* 🌟 核心修复：彻底清空 Flex 容器自带的 gap */
+  gap: 0px; 
+}
+
+.statLabel {
+  font-size: 0.5rem; 
+  color: #8E8E93;
+  letter-spacing: 0.5px;
+  line-height: 1; 
+  margin-bottom: 4px; 
+}
+
+.statVal {
+  font-size: 0.85rem; 
+  color: #E5E5EA; 
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.5px; 
+  line-height: 1; /* 同样压平数据的行高 */
+  display: flex;
+  align-items: baseline;
+  gap: 3px; 
+  text-shadow: none !important; 
+  opacity: 1;
+  
+  small {
+    font-size: 0.5rem; 
+    color: #8E8E93;
+    font-style: normal;
+    font-weight: normal;
+    letter-spacing: 0; 
+  }
+}
+
+/* =========================================
+   📱 手机端自适应排版
+========================================= */
+@media (max-width: 768px) {
+  .runDetailCard {
+    display: none !important; 
+  }
+
   .buttons {
     top: 4px;
     bottom: 0;
